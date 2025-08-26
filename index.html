@@ -23,19 +23,17 @@
       width: min(560px, 100%); display:flex; flex-direction:column; gap:16px;
       align-items:stretch;
     }
-    /* Barra top destra con due pulsanti */
+    /* Topbar con UN solo pulsante a destra */
     .topbar {
-      display:flex; justify-content:flex-end; gap:10px; position:relative; z-index:3;
+      display:flex; justify-content:flex-end; position:relative; z-index:3;
     }
     .btn {
-      appearance:none; border:none; cursor:pointer; text-decoration:none; user-select:none;
+      appearance:none; border:none; cursor:pointer; user-select:none;
       padding:10px 14px; border-radius:10px; font-weight:700; transition:transform .05s ease;
-      display:inline-block; line-height:1;
+      display:inline-block; line-height:1; background:var(--twitch); color:#fff;
     }
     .btn:active { transform: translateY(1px); }
-    .btn-primary { background:var(--twitch); color:#fff; }
-    .btn-outline { background:transparent; color:var(--twitch); border:1px solid var(--twitch); }
-    /* Card e iframe classifica */
+    /* Card + iframe classifica */
     .card {
       background: var(--card); border: 1px solid rgba(255,255,255,.06);
       border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
@@ -46,7 +44,7 @@
     .title { font-size:20px; margin:0 0 10px; }
     .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
     @media (max-width: 720px) { .frame { height: 60vh; } }
-    /* Modal overlay durante apertura popup */
+    /* Overlay mentre si apre il popup */
     .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; }
     .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
     .modal .box {
@@ -54,16 +52,17 @@
       padding:18px; color:#fff; text-align:center;
     }
     .modal .hint { color:var(--muted); font-size:13px; margin-top:8px; }
+    /* iFrame di probing nascosto */
+    .probe { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="column">
 
-      <!-- Top-right: due tasti (a sinistra: Login/Logout) (a destra: Username/Accedi) -->
+      <!-- UN solo pulsante (login/logout) in alto a destra -->
       <div class="topbar">
-        <button id="btnAuth" class="btn btn-primary" type="button">Accedi</button>
-        <a id="btnUser" class="btn btn-outline" href="https://api.malgax.com/auth/twitch" rel="noopener">Accedi</a>
+        <button id="btnAuth" class="btn" type="button">Accedi</button>
       </div>
 
       <!-- Card classifica -->
@@ -84,7 +83,7 @@
     </div>
   </div>
 
-  <!-- Modal (overlay) mentre si apre il popup -->
+  <!-- Overlay mentre si apre il popup -->
   <div id="mask" class="modal-mask"></div>
   <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
     <div class="box">
@@ -94,6 +93,9 @@
     </div>
   </div>
 
+  <!-- iFrame nascosto: rileva stato login all’apertura pagina -->
+  <iframe class="probe" src="https://api.malgax.com/profile.html?silent=1" title="probe" aria-hidden="true"></iframe>
+
   <script>
     /* ================= Config ================= */
     const API_ORIGIN = "https://api.malgax.com";
@@ -102,35 +104,91 @@
 
     /* ================= UI refs ================= */
     const btnAuth = document.getElementById('btnAuth');
-    const btnUser = document.getElementById('btnUser');
     const mask    = document.getElementById('mask');
     const modal   = document.getElementById('modal');
     const loginLink = document.getElementById('loginLink');
 
     /* ================= Stato login ================= */
     let loggedIn = false;
-    let username = null;
     let authWin  = null;
     let monitor  = null;
 
     function setUI() {
-      if (loggedIn) {
-        btnAuth.textContent = 'Logout';
-        btnUser.textContent = username || 'Profilo';
-        btnUser.href = API_ORIGIN + '/profile.html';
-      } else {
-        btnAuth.textContent = 'Accedi';
-        btnUser.textContent = 'Accedi';
-        btnUser.href = API_ORIGIN + '/auth/twitch';
-      }
+      btnAuth.textContent = loggedIn ? 'Logout' : 'Accedi';
     }
     setUI();
 
-    /* ================= Popup helpers ================= */
+    /* ================= Overlay & popup helpers ================= */
     function centerSpecs(w, h) {
       const dualScreenLeft = window.screenLeft ?? screen.left;
       const dualScreenTop  = window.screenTop  ?? screen.top;
       const width  = window.innerWidth  || document.documentElement.clientWidth  || screen.width;
       const height = window.innerHeight || document.documentElement.clientHeight || screen.height;
       const left = dualScreenLeft + Math.max(0, (width - w) / 2);
-      const top  = dualScreenTop  + Math.max(0, (heig
+      const top  = dualScreenTop  + Math.max(0, (height - h) / 2);
+      return `scrollbars=yes,width=${w},height=${h},top=${top},left=${left}`;
+    }
+    function showModal(show) {
+      mask.style.display  = show ? 'block' : 'none';
+      modal.style.display = show ? 'flex' : 'none';
+      modal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+    function openPopup(url) {
+      showModal(true);
+      authWin = window.open(url, 'authPopup', centerSpecs(640, 760));
+      // fallback se il popup è bloccato
+      if (!authWin || authWin.closed) {
+        showModal(false);
+        window.location.href = url.replace('?popup=1', '');
+        return;
+      }
+      // monitora la chiusura
+      monitor = setInterval(() => {
+        if (authWin.closed) {
+          clearInterval(monitor);
+          showModal(false);
+        }
+      }, 300);
+    }
+
+    /* ================= Click unico: Login/Logout ================= */
+    btnAuth.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!loggedIn) {
+        loginLink.href = LOGIN_URL;
+        openPopup(LOGIN_URL);
+      } else {
+        openPopup(LOGOUT_URL);
+        // safety: se per qualche motivo non arriva postMessage, al close assumiamo logout
+        const start = Date.now();
+        const waitLogout = setInterval(() => {
+          const closed = !authWin || authWin.closed;
+          if (closed || Date.now() - start > 6000) {
+            clearInterval(waitLogout);
+            loggedIn = false;
+            setUI();
+          }
+        }, 400);
+      }
+    });
+
+    /* ================= Stato iniziale + update via postMessage ================= */
+    const ALLOWED_ORIGIN = API_ORIGIN;
+    window.addEventListener('message', (event) => {
+      if (event.origin !== ALLOWED_ORIGIN) return;
+      const data = event.data || {};
+      if (data.type === 'login') {
+        loggedIn = true;
+        setUI();
+        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
+        showModal(false);
+      } else if (data.type === 'logout') {
+        loggedIn = false;
+        setUI();
+        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
+        showModal(false);
+      }
+    });
+  </script>
+</body>
+</html>
