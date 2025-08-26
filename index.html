@@ -13,10 +13,19 @@
       margin: 0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
       color: var(--text);
-      display:flex; min-height:100vh;
+      min-height:100vh; display:flex; justify-content:center; align-items:center; padding:24px;
     }
-    .shell { width:100%; display:flex; justify-content:flex-end; align-items:center; padding:24px; }
-    .column { width: min(560px, 100%); display:flex; flex-direction:column; gap:16px; align-items:stretch; }
+
+    /* ====== Layout 2 colonne ====== */
+    .page {
+      width:100%; max-width: 1200px;
+      display:grid; grid-template-columns: 1fr 560px; gap:22px;
+      align-items:center;
+    }
+    @media (max-width: 1024px) { .page { grid-template-columns: 1fr; } }
+
+    /* ====== Colonna destra (login + leaderboard) ====== */
+    .column { display:flex; flex-direction:column; gap:16px; }
     .topbar { display:flex; justify-content:flex-end; position:relative; z-index:3; }
     .btn {
       appearance:none; border:none; cursor:pointer; user-select:none;
@@ -24,38 +33,140 @@
       display:inline-block; line-height:1; background:var(--twitch); color:#fff;
     }
     .btn:active { transform: translateY(1px); }
-    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25); overflow:hidden; }
+    .card {
+      background: var(--card); border: 1px solid rgba(255,255,255,.06);
+      border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
     .panel { padding: 18px; }
     .muted { color: var(--muted); font-size:14px; line-height:1.55; }
     .title { font-size:20px; margin:0 0 10px; }
     .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
     @media (max-width: 720px) { .frame { height: 60vh; } }
+
+    /* ====== Colonna sinistra (gallery) ====== */
+    .left-card {
+      background: linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.35);
+    }
+    .left-head {
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
+    }
+    .left-title {
+      margin:0; font-size:22px; letter-spacing:.2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .dot { width:10px; height:10px; border-radius:50%; background:var(--twitch); box-shadow:0 0 10px rgba(100,65,165,.8); }
+    .badge-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .badge {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 10px;
+      background: rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.1); border-radius:999px;
+      color:#eaeaf0; font-size:13px;
+    }
+    .badge img { width:20px; height:20px; object-fit:contain; }
+
+    /* Mosaic gallery */
+    .mosaic {
+      display:grid; gap:10px; margin-top:10px;
+      grid-template-columns: repeat(6, 1fr);
+      grid-auto-rows: 80px;
+    }
+    .tile { position:relative; overflow:hidden; border-radius:12px;
+            border:1px solid rgba(255,255,255,.07); background:#0c0c12; }
+    .tile img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+
+    /* Posizionamento delle 5 immagini */
+    .t1 { grid-column: 1 / span 3; grid-row: 1 / span 4; } /* grande verticale */
+    .t2 { grid-column: 4 / span 3; grid-row: 1 / span 2; } /* orizzontale alta */
+    .t3 { grid-column: 4 / span 3; grid-row: 3 / span 2; } /* orizzontale */
+    .t4 { grid-column: 1 / span 3; grid-row: 5 / span 2; } /* orizzontale bassa */
+    .t5 { grid-column: 4 / span 3; grid-row: 5 / span 2; } /* orizzontale bassa */
+
+    @media (max-width: 1024px) {
+      .mosaic { grid-auto-rows: 70px; }
+    }
+    @media (max-width: 720px) {
+      .mosaic { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 70px; }
+      .t1 { grid-column: 1 / span 4; grid-row: 1 / span 3; }
+      .t2 { grid-column: 1 / span 2; grid-row: 4 / span 2; }
+      .t3 { grid-column: 3 / span 2; grid-row: 4 / span 2; }
+      .t4 { grid-column: 1 / span 2; grid-row: 6 / span 2; }
+      .t5 { grid-column: 3 / span 2; grid-row: 6 / span 2; }
+    }
+
+    /* ====== Overlay popup ====== */
     .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; }
     .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
     .modal .box { width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center; }
     .modal .hint { color:var(--muted); font-size:13px; margin-top:8px; }
+
+    /* iFrame di probing nascosto */
     .probe { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="column">
 
+  <div class="page">
+    <!-- ====== Colonna SINISTRA (gallery) ====== -->
+    <section class="left-card" aria-labelledby="left-title">
+      <div class="left-head">
+        <h2 id="left-title" class="left-title"><span class="dot"></span>Preview carte</h2>
+        <div class="badge-row">
+          <span class="badge">
+            <img src="assets/img/incantesimi.png" alt="Incantesimi" />
+            Incantesimi
+          </span>
+          <span class="badge">
+            <img src="assets/img/istantanea.png" alt="Istantanea" />
+            Istantanea
+          </span>
+        </div>
+      </div>
+
+      <div class="mosaic">
+        <figure class="tile t1">
+          <img src="assets/img/creature%202.png" alt="Creatura 2" />
+        </figure>
+        <figure class="tile t2">
+          <img src="assets/img/creature%203.png" alt="Creatura 3" />
+        </figure>
+        <figure class="tile t3">
+          <img src="assets/img/creature%205.png" alt="Creatura 5" />
+        </figure>
+        <figure class="tile t4">
+          <img src="assets/img/incantesimi.png" alt="Incantesimi" />
+        </figure>
+        <figure class="tile t5">
+          <img src="assets/img/istantanea.png" alt="Istantanea" />
+        </figure>
+      </div>
+    </section>
+
+    <!-- ====== Colonna DESTRA (login + classifica) ====== -->
+    <section class="column">
       <div class="topbar">
         <button id="btnAuth" class="btn" type="button">Accedi</button>
       </div>
 
-      <section class="card panel">
+      <div class="card panel">
         <h2 class="title">Classifica Punti</h2>
         <p class="muted" style="margin:0 0 12px">
           Ogni <strong>sub</strong> vale <strong>+1 punto</strong>, ogni <strong>gift</strong> vale <strong>+N punti</strong> al gifter.
         </p>
-        <iframe class="frame" src="https://api.malgax.com/leaderboard.html" title="Classifica punti Malgax" loading="lazy" referrerpolicy="no-referrer"></iframe>
-      </section>
-
-    </div>
+        <iframe
+          class="frame"
+          src="https://api.malgax.com/leaderboard.html"
+          title="Classifica punti Malgax"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </div>
+    </section>
   </div>
 
+  <!-- Overlay popup -->
   <div id="mask" class="modal-mask"></div>
   <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
     <div class="box">
@@ -69,15 +180,18 @@
   <iframe class="probe" src="https://api.malgax.com/profile.html?silent=1" title="probe" aria-hidden="true"></iframe>
 
   <script>
+    /* ================= Config ================= */
     const API_ORIGIN = "https://api.malgax.com";
     const LOGIN_URL  = API_ORIGIN + "/auth/twitch?popup=1";
     const LOGOUT_URL = API_ORIGIN + "/logout?popup=1";
 
+    /* ================= UI refs ================= */
     const btnAuth = document.getElementById('btnAuth');
     const mask    = document.getElementById('mask');
     const modal   = document.getElementById('modal');
     const loginLink = document.getElementById('loginLink');
 
+    /* ================= Stato login ================= */
     let loggedIn = false;
     let authWin  = null;
     let monitor  = null;
@@ -85,6 +199,7 @@
     function setUI() { btnAuth.textContent = loggedIn ? 'Logout' : 'Accedi'; }
     setUI();
 
+    /* ================= Overlay & popup helpers ================= */
     function centerSpecs(w, h) {
       const dualScreenLeft = window.screenLeft ?? screen.left;
       const dualScreenTop  = window.screenTop  ?? screen.top;
@@ -115,6 +230,7 @@
       }, 300);
     }
 
+    /* ================= Click: Login/Logout ================= */
     btnAuth.addEventListener('click', (e) => {
       e.preventDefault();
       if (!loggedIn) {
@@ -134,6 +250,7 @@
       }
     });
 
+    /* ================= Stato iniziale + update via postMessage ================= */
     const ALLOWED_ORIGIN = API_ORIGIN;
     window.addEventListener('message', (event) => {
       if (event.origin !== ALLOWED_ORIGIN) return;
