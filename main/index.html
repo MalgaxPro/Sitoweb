@@ -1,166 +1,112 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang='it'>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sigma Challenge Cards – Magic Style</title>
-  <meta name="description" content="Climb to Master senza Udyr. Colleziona carte stile Magic durante la scalata e entra nella Hall of Fame." />
-  <meta property="og:title" content="Sigma Challenge Cards – Magic Style" />
-  <meta property="og:description" content="Climb to Master senza Udyr. Colleziona carte stile Magic durante la scalata." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#0d1128" />
-  <style>
-    :root { --bg:#0d1128; --fg:#eaeaf1; --muted:#b2b4c8; --panel:#111637; --line:#2f334f; --accent:#9d4edd; --grad1:#7e40ff; --grad2:#a968ff; }
-    * { box-sizing:border-box }
-    body { background:var(--bg); color:var(--fg); margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
-    .container { max-width:1200px; margin:0 auto; padding:20px; }
-    header { text-align:center; margin-bottom:30px; }
-    header h1 { font-size:2.5rem; margin:10px 0 5px; }
-    header p.tagline { font-size:1.1rem; color:var(--muted); margin-bottom:20px; }
-    .intro-list { list-style:disc; list-style-position:inside; padding:0; margin:0 auto 20px; max-width:640px; }
-    .intro-list li { margin:6px 0; }
-    .progress-label { font-size:1rem; margin-top:10px; color:#c3c6e4; }
-    .progress-container { background:#1f254d; border-radius:6px; overflow:hidden; height:12px; margin:10px auto; width:60%; }
-    .progress-bar { background:linear-gradient(90deg,var(--grad1),var(--grad2)); height:100%; width:30%; transition:width .3s ease; }
-    .cta-button { display:inline-block; background:var(--accent); color:#fff; padding:12px 24px; border-radius:10px; font-size:1rem; text-decoration:none; margin-top:20px; }
-    .layout { display:flex; flex-wrap:wrap; gap:30px; }
-    .left-pane, .right-pane { flex:1; min-width:300px; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
-    .category-section { margin-bottom:25px; }
-    .category-section h3 { font-size:1.2rem; margin:0 0 10px; color:#b2b4ff; }
-    .category-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
-    .card { aspect-ratio: 3/4; background:#0c0f27; border:1px solid #1e2448; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; color:#8891c7; font-weight:600; }
-    .hall-of-fame h2, .subgoals h2 { font-size:1.4rem; margin:0 0 12px; }
-    .hall-of-fame ul { list-style:none; padding:0; margin:0; }
-    .hall-of-fame li { display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding:6px 0; font-size:0.95rem; }
-    table { width:100%; border-collapse:collapse; color:var(--fg); font-size:0.9rem; }
-    th, td { padding:8px; border:1px solid var(--line); text-align:center; }
-    th { background:#1d2140; }
-    tr:nth-child(even) td { background:#151a35; }
-    footer { margin:30px 0 10px; text-align:center; color:#8f93b8; font-size:0.9rem; }
-    @media (max-width:800px) { .progress-container{width:88%} .layout{flex-direction:column} }
-  </style>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Sigma Challenge Cards - Magic Style</title>
+<style>
+body {background:#0d1128;color:#eaeaf1;margin:0;font-family:'Arial',sans-serif;}
+.container {max-width:1200px;margin:0 auto;padding:20px;}
+header {text-align:center;margin-bottom:30px;}
+header h1 {font-size:2.5rem;margin:10px 0 5px;}
+header p.tagline {font-size:1.1rem;color:#b2b4c8;margin-bottom:20px;}
+.intro-list {list-style:disc;list-style-position:inside;padding:0;margin:0 auto 20px;max-width:600px;}
+.intro-list li {margin:6px 0;}
+.progress-label {font-size:1rem;margin-top:10px;color:#c3c6e4;}
+.progress-container {background:#1f254d;border-radius:6px;overflow:hidden;height:12px;margin:10px auto;width:60%;}
+.progress-bar {background:linear-gradient(90deg,#7e40ff,#a968ff);height:100%;width:30%;}
+.cta-button {display:inline-block;background:#9d4edd;color:#fff;padding:12px 24px;border-radius:8px;font-size:1rem;text-decoration:none;margin-top:20px;}
+.layout {display:flex;flex-wrap:wrap;gap:30px;}
+.left-pane, .right-pane {flex:1;min-width:300px;}
+.category-section {margin-bottom:25px;}
+.category-section h3 {font-size:1.2rem;margin-bottom:10px;color:#b2b4ff;}
+.category-section img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+.hall-of-fame {margin-top:30px;}
+.hall-of-fame h2 {font-size:1.4rem;margin-bottom:10px;}
+.hall-of-fame ul {list-style:none;padding:0;margin:0;}
+.hall-of-fame li {display:flex;justify-content:space-between;border-bottom:1px solid #2f334f;padding:4px 0;font-size:0.9rem;}
+.subgoals {margin-top:30px;}
+.subgoals h2 {font-size:1.4rem;margin-bottom:10px;}
+table {width:100%;border-collapse:collapse;color:#eaeaf1;font-size:0.9rem;}
+table th, table td {padding:8px;border:1px solid #2f334f;text-align:center;}
+table th {background:#1d2140;}
+table tr:nth-child(even) td {background:#151a35;}
+@media(max-width:800px) {.progress-container{width:80%;}.layout{flex-direction:column;}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div style="font-size:3rem;color:#b583f0;">&#10048;</div>
-      <h1>Sigma Challenge Cards</h1>
-      <p class="tagline">Nuova sfida: Climb to Master senza giocare Udyr</p>
-      <ul class="intro-list">
-        <li>Raggiungi Master giocando solo campioni nuovi (no Udyr).</li>
-        <li>Colleziona carte magiche durante la scalata.</li>
-        <li>Cinque categorie in stile Magic: Mostri 2/3/5, Istantanee, Incantesimi.</li>
-      </ul>
-      <div class="progress-label">Progress: <span id="progressText">15/50</span></div>
-      <div class="progress-container"><div class="progress-bar" id="progressBar" style="width:30%"></div></div>
-      <a href="https://www.twitch.tv/subs/malgax?gift=true"
+<div class='container'>
+<header>
+<div style='font-size:3rem;color:#b583f0;'>&#10048;</div>
+<h1>Sigma Challenge Cards</h1>
+<p class='tagline'>Nuova sfida: Climb to Master senza giocare Udyr</p>
+<ul class='intro-list'>
+<li>Raggiungi Master giocando solo con campioni nuovi (No Udyr)</li>
+<li>Colleziona carte magiche durante la tua scalata</li>
+<li>Ogni categoria si ispira a diversi tipi di carte stile Magic</li>
+</ul>
+<div class='progress-label'>Progress: 15/50</div>
+<div class='progress-container'><div class='progress-bar' style='width:30%'></div></div>
+<a href="https://www.twitch.tv/subs/malgax?gift=true"
    class="cta-button"
    target="_blank"
    rel="noopener noreferrer"
    aria-label="Apri la pagina abbonamenti Twitch di Malgax per regalare sub">
   Pesca carte
 </a>
+</header>
+<div class='layout'>
+<div class='left-pane'>
+<!-- Category sections -->
+<div class='category-section'>
+<h3>Mostri – Costo 2</h3>
+</div>
+<div class='category-section'>
+<h3>Mostri – Costo 3</h3>
 
-
-    </header>
-
-    <div class="layout">
-      <div class="left-pane">
-        <section id="cards" class="panel">
-          <!-- Category sections -->
-          <div class="category-section">
-            <h3>Mostri – Costo 2</h3>
-            <div class="category-grid">
-              <div class="card">2 Mana</div>
-              <div class="card">2 Mana</div>
-              <div class="card">2 Mana</div>
-            </div>
-          </div>
-
-          <div class="category-section">
-            <h3>Mostri – Costo 3</h3>
-            <div class="category-grid">
-              <div class="card">3 Mana</div>
-              <div class="card">3 Mana</div>
-              <div class="card">3 Mana</div>
-            </div>
-          </div>
-
-          <div class="category-section">
-            <h3>Mostri – Costo 5</h3>
-            <div class="category-grid">
-              <div class="card">5 Mana</div>
-              <div class="card">5 Mana</div>
-              <div class="card">5 Mana</div>
-            </div>
-          </div>
-
-          <div class="category-section">
-            <h3>Istantanee</h3>
-            <div class="category-grid">
-              <div class="card">Instant</div>
-              <div class="card">Instant</div>
-            </div>
-          </div>
-
-          <div class="category-section">
-            <h3>Incantesimi</h3>
-            <div class="category-grid">
-              <div class="card">Aura</div>
-              <div class="card">Rituale</div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div class="right-pane">
-        <section class="panel hall-of-fame">
-          <h2>Hall of Fame</h2>
-          <ul>
-            <li><span>Alpha</span><span>10</span></li>
-            <li><span>Beta</span><span>8</span></li>
-            <li><span>Gamma</span><span>6</span></li>
-            <li><span>Delta</span><span>4</span></li>
-            <li><span>Epsilon</span><span>2</span></li>
-          </ul>
-        </section>
-
-        <section class="panel subgoals" style="margin-top:16px;">
-          <h2>Subgoals</h2>
-          <table>
-            <thead><tr><th>Mazzo</th><th>C</th><th>R</th><th>UR</th><th>RBW</th></tr></thead>
-            <tbody>
-              <tr><td>T1</td><td>70%</td><td>20%</td><td>9%</td><td>1%</td></tr>
-              <tr><td>T2</td><td>50%</td><td>30%</td><td>18%</td><td>2%</td></tr>
-              <tr><td>T3</td><td>30%</td><td>35%</td><td>30%</td><td>5%</td></tr>
-              <tr><td>T4</td><td>15%</td><td>30%</td><td>47%</td><td>8%</td></tr>
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </div>
-
-    <footer>© 2025 Malgax · All rights reserved</footer>
-  </div>
-
-  <script>
-    // Smooth scroll su “Pesca carte”
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click', e=>{
-        const id = a.getAttribute('href').slice(1);
-        const el = document.getElementById(id);
-        if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth'}); }
-      });
-    });
-
-    // Placeholder per progress dinamico (quando avremo backend)
-    // Esempio: setProgress(22, 50)
-    function setProgress(done,total){
-      const pct = Math.max(0, Math.min(100, total ? (done/total*100) : 0));
-      document.getElementById('progressBar').style.width = pct.toFixed(0) + '%';
-      document.getElementById('progressText').textContent = `${done}/${total}`;
-    }
-  </script>
+</div>
+<div class='category-section'>
+<h3>Mostri – Costo 5</h3>
+</div>
+<div class='category-section'>
+<h3>Istantanee</h3>
+</div>
+<div class='category-section'>
+<h3>Incantesimi</h3>
+</div>
+</div>
+<div class='right-pane'>
+<div class='hall-of-fame'>
+<h2>Hall of Fame</h2>
+<ul>
+<li><span>Alpha</span><span>10</span></li>
+<li><span>Beta</span><span>8</span></li>
+<li><span>Gamma</span><span>6</span></li>
+<li><span>Delta</span><span>4</span></li>
+<li><span>Epsilon</span><span>2</span></li>
+</ul>
+</div>
+<div class='subgoals'>
+<h2>Subgoals</h2>
+<table>
+<thead><tr><th>Mazzo</th><th>C</th><th>R</th><th>UR</th><th>RBW</th></tr></thead>
+<tbody>
+<tr><td>T1</td><td>70%</td><td>20%</td><td>9%</td><td>1%</td></tr>
+<tr><td>T2</td><td>50%</td><td>30%</td><td>18%</td><td>2%</td></tr>
+<tr><td>T3</td><td>30%</td><td>35%</td><td>30%</td><td>5%</td></tr>
+<tr><td>T4</td><td>15%</td><td>30%</td><td>47%</td><td>8%</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
 </body>
 </html>
