@@ -130,4 +130,57 @@ app.get('/leaderboard', (req, res) => {
 app.post('/eventsub', (req, res) => {
   const secret = process.env.TWITCH_EVENTSUB_SECRET || '';
   const msgId = req.get('Twitch-Eventsub-Message-Id') || '';
-  const timestamp = req.
+  const timestamp = req.get('Twitch-Eventsub-Message-Timestamp') || '';
+  const signature = (req.get('Twitch-Eventsub-Message-Signature') || '').toLowerCase();
+
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(msgId);
+  hmac.update(timestamp);
+  hmac.update(req.body); // Buffer RAW
+  const expected = 'sha256=' + hmac.digest('hex');
+
+  if (expected !== signature) {
+    return res.status(403).type('text/plain').send('Invalid signature');
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(req.body.toString('utf8'));
+  } catch (e) {
+    return res.status(400).type('text/plain').send('Bad JSON');
+  }
+
+  if (payload.challenge) {
+    return res.status(200).type('text/plain').send(payload.challenge);
+  }
+
+  const { subscription, event } = payload;
+  if (!subscription || !event) return res.sendStatus(200);
+
+  if (subscription.type === 'channel.subscribe') {
+    db.run(
+      `INSERT INTO users (twitch_id, username, points)
+       VALUES (?, ?, 1)
+       ON CONFLICT(twitch_id) DO UPDATE SET points = points + 1`,
+      [event.user_id, event.user_name]
+    );
+  }
+
+  if (subscription.type === 'channel.subscription.gift') {
+    const giftCount = Number(event.total) || 1;
+    db.run(
+      `INSERT INTO users (twitch_id, username, points)
+       VALUES (?, ?, ?)
+       ON CONFLICT(twitch_id) DO UPDATE SET points = points + ?`,
+      [event.user_id, event.user_name, giftCount, giftCount]
+    );
+  }
+
+  return res.sendStatus(200);
+});
+
+// --- Health & Avvio ---
+app.get('/health', (req, res) => res.send('OK'));
+app.listen(PORT, () => {
+  console.log(`Server avviato su http://localhost:${PORT}`);
+});
