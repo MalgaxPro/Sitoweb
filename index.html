@@ -44,56 +44,62 @@
     .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
     @media (max-width: 720px) { .frame { height: 60vh; } }
 
-    /* ====== Colonna sinistra (gallery) ====== */
+    /* ====== Colonna sinistra (righe per categoria) ====== */
     .left-card {
       background: linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
       border: 1px solid rgba(255,255,255,.08);
       border-radius:16px; padding:18px;
       box-shadow: 0 10px 28px rgba(0,0,0,.35);
     }
-    .left-head {
-      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;
-    }
     .left-title {
-      margin:0; font-size:22px; letter-spacing:.2px;
+      margin:0 0 14px; font-size:22px; letter-spacing:.2px;
       display:flex; align-items:center; gap:10px;
     }
     .dot { width:10px; height:10px; border-radius:50%; background:var(--twitch); box-shadow:0 0 10px rgba(100,65,165,.8); }
-    .badge-row { display:flex; gap:10px; flex-wrap:wrap; }
-    .badge {
-      display:inline-flex; align-items:center; gap:8px; padding:8px 10px;
-      background: rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.1); border-radius:999px;
-      color:#eaeaf0; font-size:13px;
-    }
-    .badge img { width:20px; height:20px; object-fit:contain; }
 
-    /* Mosaic gallery */
-    .mosaic {
-      display:grid; gap:10px; margin-top:10px;
-      grid-template-columns: repeat(6, 1fr);
-      grid-auto-rows: 80px;
+    .category { margin-bottom:18px; }
+    .cat-head {
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px;
     }
-    .tile { position:relative; overflow:hidden; border-radius:12px;
-            border:1px solid rgba(255,255,255,.07); background:#0c0c12; }
-    .tile img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .cat-name { margin:0; font-size:16px; color:#eaeaf0; letter-spacing:.2px; }
+    .cat-meta { font-size:12px; color:#a4a4b5; }
 
-    /* Posizionamento delle 5 immagini */
-    .t1 { grid-column: 1 / span 3; grid-row: 1 / span 4; } /* grande verticale */
-    .t2 { grid-column: 4 / span 3; grid-row: 1 / span 2; } /* orizzontale alta */
-    .t3 { grid-column: 4 / span 3; grid-row: 3 / span 2; } /* orizzontale */
-    .t4 { grid-column: 1 / span 3; grid-row: 5 / span 2; } /* orizzontale bassa */
-    .t5 { grid-column: 4 / span 3; grid-row: 5 / span 2; } /* orizzontale bassa */
+    /* STRIP: una sola riga orizzontale, 5–10 carte visibili (default 8), scrollabile */
+    .strip {
+      --cols: 8;              /* quante carte vuoi visibili ~5-10 */
+      --gap: 10px;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols));
+      gap: var(--gap);
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+    }
+    .strip::-webkit-scrollbar { height: 8px; }
+    .strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 8px; }
+
+    /* Card immagine: TUTTE UGUALI, NESSUN TAGLIO */
+    .cardbox {
+      height: 170px;                 /* stessa altezza per tutti */
+      background:#0c0c12;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .cardbox img {
+      max-width:100%; max-height:100%;
+      object-fit: contain;          /* NESSUN TAGLIO */
+      display:block;
+    }
 
     @media (max-width: 1024px) {
-      .mosaic { grid-auto-rows: 70px; }
+      .strip { --cols: 6; }
+      .cardbox { height: 160px; }
     }
     @media (max-width: 720px) {
-      .mosaic { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 70px; }
-      .t1 { grid-column: 1 / span 4; grid-row: 1 / span 3; }
-      .t2 { grid-column: 1 / span 2; grid-row: 4 / span 2; }
-      .t3 { grid-column: 3 / span 2; grid-row: 4 / span 2; }
-      .t4 { grid-column: 1 / span 2; grid-row: 6 / span 2; }
-      .t5 { grid-column: 3 / span 2; grid-row: 6 / span 2; }
+      .strip { --cols: 5; }
+      .cardbox { height: 150px; }
     }
 
     /* ====== Overlay popup ====== */
@@ -109,38 +115,46 @@
 <body>
 
   <div class="page">
-    <!-- ====== Colonna SINISTRA (gallery) ====== -->
+    <!-- ====== Colonna SINISTRA (righe per categoria) ====== -->
     <section class="left-card" aria-labelledby="left-title">
-      <div class="left-head">
-        <h2 id="left-title" class="left-title"><span class="dot"></span>Preview carte</h2>
-        <div class="badge-row">
-          <span class="badge">
-            <img src="assets/img/incantesimi.png" alt="Incantesimi" />
-            Incantesimi
-          </span>
-          <span class="badge">
-            <img src="assets/img/istantanea.png" alt="Istantanea" />
-            Istantanea
-          </span>
+      <h2 id="left-title" class="left-title"><span class="dot"></span> Carte per categoria</h2>
+
+      <!-- Categoria: Creature -->
+      <div class="category">
+        <div class="cat-head">
+          <h3 class="cat-name">Creature</h3>
+          <div class="cat-meta">Anteprime</div>
+        </div>
+        <div class="strip" aria-label="Riga carte: Creature">
+          <figure class="cardbox"><img src="assets/img/creature%202.png" alt="Creatura 2" /></figure>
+          <figure class="cardbox"><img src="assets/img/creature%203.png" alt="Creatura 3" /></figure>
+          <figure class="cardbox"><img src="assets/img/creature%205.png" alt="Creatura 5" /></figure>
+          <!-- Se aggiungi altre creature (es. creature 6.png) basta aggiungere altre <figure> uguali -->
         </div>
       </div>
 
-      <div class="mosaic">
-        <figure class="tile t1">
-          <img src="assets/img/creature%202.png" alt="Creatura 2" />
-        </figure>
-        <figure class="tile t2">
-          <img src="assets/img/creature%203.png" alt="Creatura 3" />
-        </figure>
-        <figure class="tile t3">
-          <img src="assets/img/creature%205.png" alt="Creatura 5" />
-        </figure>
-        <figure class="tile t4">
-          <img src="assets/img/incantesimi.png" alt="Incantesimi" />
-        </figure>
-        <figure class="tile t5">
-          <img src="assets/img/istantanea.png" alt="Istantanea" />
-        </figure>
+      <!-- Categoria: Incantesimi -->
+      <div class="category">
+        <div class="cat-head">
+          <h3 class="cat-name">Incantesimi</h3>
+          <div class="cat-meta">Anteprime</div>
+        </div>
+        <div class="strip" aria-label="Riga carte: Incantesimi">
+          <figure class="cardbox"><img src="assets/img/incantesimi.png" alt="Incantesimi" /></figure>
+          <!-- Aggiungi altre carte incantesimo qui se disponibili -->
+        </div>
+      </div>
+
+      <!-- Categoria: Istantanea -->
+      <div class="category">
+        <div class="cat-head">
+          <h3 class="cat-name">Istantanea</h3>
+          <div class="cat-meta">Anteprime</div>
+        </div>
+        <div class="strip" aria-label="Riga carte: Istantanea">
+          <figure class="cardbox"><img src="assets/img/istantanea.png" alt="Istantanea" /></figure>
+          <!-- Aggiungi altre carte istantanea qui se disponibili -->
+        </div>
       </div>
     </section>
 
