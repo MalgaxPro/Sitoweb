@@ -2,34 +2,39 @@
 <html lang="it">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Malgax — Login & Classifica</title>
   <meta name="description" content="Accedi con Twitch e guarda la classifica punti delle sub sul canale di Malgax." />
   <style>
     :root { --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
       color: var(--text);
     }
+    /* Header “robusto” con z-index alto */
     header {
+      position: relative; z-index: 3;
       max-width: 1100px; margin: 24px auto; padding: 0 16px;
-      display:flex; align-items:center; justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between; gap: 12px;
     }
     .brand { display:flex; gap:10px; align-items:center; }
     .brand h1 { margin:0; font-size:22px; letter-spacing:.3px; }
     .brand .dot { width:10px; height:10px; border-radius:50%; background:var(--twitch); box-shadow:0 0 12px rgba(100,65,165,.7); }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; }
     .btn {
       appearance:none; border:none; cursor:pointer; text-decoration:none;
       padding:10px 14px; border-radius:10px; font-weight:700; transition:transform .05s ease;
+      display:inline-block;
     }
     .btn:active { transform: translateY(1px); }
     .btn-primary { background:var(--twitch); color:#fff; }
     .btn-outline { background:transparent; color:var(--twitch); border:1px solid var(--twitch); }
-    .hero {
-      max-width: 1100px; margin: 10px auto 24px; padding: 0 16px;
+    /* Layout principale */
+    .wrap-main {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 8px auto 24px; padding: 0 16px;
       display:grid; grid-template-columns: 1.2fr .8fr; gap: 18px;
     }
     .card {
@@ -38,37 +43,51 @@
     }
     .panel { padding: 20px; }
     .panel h2 { margin:0 0 8px; font-size:20px; }
-    .muted { color: var(--muted); font-size:14px; line-height:1.5; }
+    .muted { color: var(--muted); font-size:14px; line-height:1.55; }
     .list { margin: 12px 0 0; padding-left: 18px; }
+    /* Iframe classifica */
+    .frame-wrap { position: relative; z-index: 1; }
     .frame {
-      width: 100%; height: 70vh; border: 0; border-radius: 14px;
-      background:#0c0c12;
+      width: 100%; height: 70vh; border: 0; border-radius: 14px; background:#0c0c12;
+    }
+    /* Pulsante login fisso (sempre visibile sopra tutto) */
+    #login-twitch-fixed {
+      position:fixed; top:16px; right:16px; z-index: 99999;
+      background:#6441a5; color:#fff; padding:12px 16px; border-radius:10px;
+      font-weight:700; text-decoration:none; box-shadow:0 6px 16px rgba(0,0,0,.3);
+      pointer-events:auto;
     }
     footer { max-width:1100px; margin:16px auto 40px; padding:0 16px; color:var(--muted); font-size:12px; text-align:right; }
     @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; }
+      .wrap-main { grid-template-columns: 1fr; }
       .frame { height: 65vh; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Pulsante fisso di emergenza (se qualche CSS del tema nasconde l’header, questo resta visibile) -->
+  <a href="https://api.malgax.com/auth/twitch" id="login-twitch-fixed" rel="noopener">Accedi con Twitch</a>
+  <noscript>
+    <p style="position:fixed;top:60px;right:16px;z-index:99999;">
+      <a href="https://api.malgax.com/auth/twitch" style="color:#fff;background:#6441a5;padding:8px 10px;border-radius:8px;text-decoration:none;">Accedi con Twitch</a>
+    </p>
+  </noscript>
+
   <header>
     <div class="brand">
       <span class="dot"></span>
       <h1>Malgax — Punti Sub</h1>
     </div>
-    <div class="actions">
-      <!-- LOGIN su backend -->
-      <a class="btn btn-primary" href="https://api.malgax.com/auth/twitch">Accedi con Twitch</a>
-      <!-- Profilo (opzionale, pagina backend) -->
-      <a class="btn btn-outline" href="https://api.malgax.com/profile.html">Profilo</a>
+    <div>
+      <a class="btn btn-primary" href="https://api.malgax.com/auth/twitch" rel="noopener">Accedi con Twitch</a>
+      <a class="btn btn-outline" href="https://api.malgax.com/profile.html" rel="noopener">Profilo</a>
     </div>
   </header>
 
-  <main class="hero">
-    <!-- Colonna classifica (iframe dal backend: nessun CORS necessario) -->
-    <section class="card">
+  <main class="wrap-main">
+    <!-- Classifica incorporata dal backend -->
+    <section class="card frame-wrap" aria-labelledby="classifica-title">
       <iframe
         class="frame"
         src="https://api.malgax.com/leaderboard.html"
@@ -78,9 +97,9 @@
       ></iframe>
     </section>
 
-    <!-- Colonna informazioni / call-to-action -->
+    <!-- Info e call-to-action -->
     <aside class="card panel">
-      <h2>Come funziona</h2>
+      <h2 id="classifica-title">Come funziona</h2>
       <p class="muted">
         Accedi con il tuo account Twitch, fai una <strong>sub</strong> sul canale di <strong>Malgax</strong>
         (o ricevine una gift) e i tuoi <strong>punti</strong> si aggiornano automaticamente.
@@ -88,11 +107,11 @@
       <ul class="muted list">
         <li>Sub normale: <strong>+1 punto</strong></li>
         <li>Gift di N sub: <strong>+N punti</strong> al gifter</li>
-        <li>Classifica aggiornata in tempo reale</li>
+        <li>La classifica qui a sinistra si aggiorna in tempo reale</li>
       </ul>
 
       <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-        <a class="btn btn-primary" href="https://api.malgax.com/auth/twitch">Accedi con Twitch</a>
+        <a class="btn btn-primary" href="https://api.malgax.com/auth/twitch" rel="noopener">Accedi con Twitch</a>
         <a class="btn btn-outline" href="https://api.malgax.com/leaderboard.html" target="_blank" rel="noopener">Apri classifica</a>
       </div>
 
@@ -107,7 +126,7 @@
   </footer>
 
   <script>
-    // Anno nel footer
+    // Anno corrente nel footer
     document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 </body>
