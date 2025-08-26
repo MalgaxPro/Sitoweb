@@ -23,7 +23,7 @@
       width: min(560px, 100%); display:flex; flex-direction:column; gap:16px;
       align-items:stretch;
     }
-    /* Barra top: due pulsanti in alto a destra */
+    /* Barra top destra con due pulsanti */
     .topbar {
       display:flex; justify-content:flex-end; gap:10px; position:relative; z-index:3;
     }
@@ -46,7 +46,7 @@
     .title { font-size:20px; margin:0 0 10px; }
     .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
     @media (max-width: 720px) { .frame { height: 60vh; } }
-    /* Modal popup overlay (solo estetica; il login è una finestra pop-up) */
+    /* Modal overlay durante apertura popup */
     .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; }
     .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
     .modal .box {
@@ -54,21 +54,15 @@
       padding:18px; color:#fff; text-align:center;
     }
     .modal .hint { color:var(--muted); font-size:13px; margin-top:8px; }
-    /* Debug overlay */
-    #debug {
-      position:fixed; left:12px; bottom:12px; z-index:99999;
-      background:#1b1b22; color:#eaeaf0; border:1px solid #333; border-radius:8px;
-      padding:8px 10px; font:12px/1.4 monospace; max-width:70vw; display:none; white-space:pre-wrap;
-    }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="column">
 
-      <!-- Top-right: due tasti (Login/Logout + Nome utente/Accedi) -->
+      <!-- Top-right: due tasti (a sinistra: Login/Logout) (a destra: Username/Accedi) -->
       <div class="topbar">
-        <button id="btnAuth" class="btn btn-primary">Accedi</button>
+        <button id="btnAuth" class="btn btn-primary" type="button">Accedi</button>
         <a id="btnUser" class="btn btn-outline" href="https://api.malgax.com/auth/twitch" rel="noopener">Accedi</a>
       </div>
 
@@ -85,7 +79,6 @@
           loading="lazy"
           referrerpolicy="no-referrer"
         ></iframe>
-        <p class="muted" style="margin:8px 0 0">Se la classifica non si vede: <a href="https://api.malgax.com/leaderboard.html" target="_blank" rel="noopener" style="color:#9cb3ff">apri in nuova scheda</a>.</p>
       </section>
 
     </div>
@@ -101,9 +94,6 @@
     </div>
   </div>
 
-  <!-- Debug overlay -->
-  <div id="debug"></div>
-
   <script>
     /* ================= Config ================= */
     const API_ORIGIN = "https://api.malgax.com";
@@ -116,25 +106,8 @@
     const mask    = document.getElementById('mask');
     const modal   = document.getElementById('modal');
     const loginLink = document.getElementById('loginLink');
-    const debugEl = document.getElementById('debug');
 
-    /* ================= Debug helpers ================= */
-    function debug(msg) {
-      try {
-        console.log('[DEBUG]', msg);
-        debugEl.style.display = 'block';
-        const t = new Date().toLocaleTimeString();
-        debugEl.textContent += `\n[${t}] ${msg}`;
-      } catch(e){}
-    }
-    window.onerror = function(msg, src, line, col, err) {
-      debug('JS ERROR: ' + msg + ' @ ' + (src||'') + ':' + (line||'?'));
-    };
-    window.addEventListener('unhandledrejection', ev => {
-      debug('PROMISE REJECTION: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason));
-    });
-
-    /* ================= Stato login (sincronizzato via postMessage dal popup) ================= */
+    /* ================= Stato login ================= */
     let loggedIn = false;
     let username = null;
     let authWin  = null;
@@ -152,7 +125,6 @@
       }
     }
     setUI();
-    debug('boot ok');
 
     /* ================= Popup helpers ================= */
     function centerSpecs(w, h) {
@@ -161,80 +133,4 @@
       const width  = window.innerWidth  || document.documentElement.clientWidth  || screen.width;
       const height = window.innerHeight || document.documentElement.clientHeight || screen.height;
       const left = dualScreenLeft + Math.max(0, (width - w) / 2);
-      const top  = dualScreenTop  + Math.max(0, (height - h) / 2);
-      return `scrollbars=yes,width=${w},height=${h},top=${top},left=${left}`;
-    }
-
-    function showModal(show) {
-      mask.style.display  = show ? 'block' : 'none';
-      modal.style.display = show ? 'flex' : 'none';
-      modal.setAttribute('aria-hidden', show ? 'false' : 'true');
-    }
-
-    function openPopup(url) {
-      showModal(true);
-      debug('open popup: ' + url);
-      authWin = window.open(url, 'authPopup', centerSpecs(640, 760));
-      // fallback se il popup è bloccato
-      if (!authWin || authWin.closed) {
-        debug('popup bloccato, redirect pieno');
-        showModal(false);
-        window.location.href = url.replace('?popup=1', '');
-        return;
-      }
-      // monitora chiusura
-      monitor = setInterval(() => {
-        if (authWin.closed) {
-          clearInterval(monitor);
-          showModal(false);
-          debug('popup chiuso');
-        }
-      }, 400);
-    }
-
-    /* ================= Gestione click ================= */
-    btnAuth.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (!loggedIn) {
-        loginLink.href = LOGIN_URL;
-        openPopup(LOGIN_URL);
-      } else {
-        openPopup(LOGOUT_URL);
-        // safety: se non arriva postMessage entro 8s, assumiamo logout
-        const start = Date.now();
-        const waitLogout = setInterval(() => {
-          const closed = !authWin || authWin.closed;
-          if (closed || Date.now() - start > 8000) {
-            clearInterval(waitLogout);
-            loggedIn = false;
-            username = null;
-            setUI();
-            debug('logout forzato per timeout');
-          }
-        }, 500);
-      }
-    });
-
-    /* ================= postMessage dal popup (profile/logout su API) ================= */
-    const ALLOWED_ORIGIN = API_ORIGIN;
-    window.addEventListener('message', (event) => {
-      if (event.origin !== ALLOWED_ORIGIN) return;
-      const data = event.data || {};
-      debug('message: ' + JSON.stringify(data));
-      if (data.type === 'login') {
-        loggedIn = true;
-        username = data.username || 'Profilo';
-        setUI();
-        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
-        showModal(false);
-      } else if (data.type === 'logout') {
-        loggedIn = false;
-        username = null;
-        setUI();
-        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
-        showModal(false);
-      }
-    });
-  </script>
-</body>
-</html>
+      const top  = dualScreenTop  + Math.max(0, (heig
