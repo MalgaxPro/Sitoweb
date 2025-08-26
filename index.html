@@ -8,8 +8,8 @@
   <style>
     :root {
       --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
-      --cards-per-row: 5; /* <— cambia qui 5–10 per quante carte per riga vuoi su desktop */
-      --card-ratio-w: 63;  /* rapporto tipico carta 63x88 mm */
+      --cards-per-row: 5;      /* quante carte per riga su desktop */
+      --card-ratio-w: 63;      /* rapporto carta 63x88 */
       --card-ratio-h: 88;
     }
     * { box-sizing: border-box; }
@@ -21,7 +21,7 @@
       min-height:100vh; display:flex; justify-content:center; align-items:center; padding:24px;
     }
 
-    /* ====== Layout 2 colonne ====== */
+    /* ===== Layout 2 colonne ===== */
     .page {
       width:100%; max-width: 1200px;
       display:grid; grid-template-columns: 1fr 560px; gap:22px;
@@ -29,7 +29,7 @@
     }
     @media (max-width: 1100px) { .page { grid-template-columns: 1fr; } }
 
-    /* ====== Colonna destra (login + leaderboard) ====== */
+    /* ===== Colonna destra (login + leaderboard) ===== */
     .column { display:flex; flex-direction:column; gap:16px; }
     .topbar { display:flex; justify-content:flex-end; position:relative; z-index:3; }
     .btn {
@@ -49,7 +49,7 @@
     .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
     @media (max-width: 720px) { .frame { height: 60vh; } }
 
-    /* ====== Colonna sinistra (righe per categoria) ====== */
+    /* ===== Colonna sinistra (righe per categoria) ===== */
     .left-card {
       background: linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
       border: 1px solid rgba(255,255,255,.08);
@@ -65,12 +65,9 @@
     }
     .cat-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
     .cat-title { margin:0; font-size:16px; letter-spacing:.2px; color:#eaeaf0; white-space:nowrap; }
-    .cat-line {
-      height:1px; background:var(--line); flex:1; border-radius:1px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-    }
+    .cat-line { height:1px; background:var(--line); flex:1; border-radius:1px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.02); }
 
-    /* Righe carte: responsive, NO tagli, contenitori che si adattano automaticamente */
+    /* Righe carte responsive */
     .cards-row {
       display:grid; gap:10px;
       grid-template-columns: repeat(var(--cards-per-row), 1fr);
@@ -80,30 +77,33 @@
     @media (max-width: 760px) { .cards-row { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 520px) { .cards-row { grid-template-columns: repeat(2, 1fr); } }
 
-    /* Ogni carta mantiene un rapporto (63:88) responsivo — il contenitore si adatta */
-    .card-item {
+    /* Ogni carta mantiene il rapporto 63:88; il contenitore si adatta, nessun taglio */
+    .card-item{
       position:relative;
-      aspect-ratio: calc(var(--card-ratio-w) / var(--card-ratio-h)); /* auto-height in base alla larghezza */
+      aspect-ratio: calc(var(--card-ratio-w) / var(--card-ratio-h));
       background:#0c0c12;
       border:1px solid rgba(255,255,255,.12);
       border-radius:12px;
       overflow:hidden;
-      display:flex; align-items:center; justify-content:center;
+      display:grid; place-items:center;
       padding:8px;
     }
-    .card-item img {
-      width: 100%; height: 100%;
-      object-fit: contain; /* NON tagliare */
+    .card-item img{
+      width:100%; height:100%;
+      object-fit:contain; /* NON tagliare */
       display:block;
     }
-    /* (opzionale) pattern leggero di fallback sotto alle immagini per “riempire” lo spazio */
-    .card-item::before {
-      content:"";
-      position:absolute; inset:0; pointer-events:none;
-      background: radial-gradient(120px 120px at 80% 20%, rgba(255,255,255,.05), transparent 60%);
+
+    /* Se un’immagine non carica, mostra un’indicazione visiva (niente “pallini”) */
+    .img-error { border-color:#ff6b6b; }
+    .img-error::after{
+      content:"IMG 404";
+      position:absolute; inset:auto auto 8px 8px;
+      font:700 11px/1 system-ui; color:#ff6b6b; background:rgba(255,107,107,.1);
+      border:1px solid rgba(255,107,107,.35); border-radius:6px; padding:2px 6px;
     }
 
-    /* ====== Overlay popup ====== */
+    /* ===== Overlay popup ===== */
     .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; }
     .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
     .modal .box { width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center; }
@@ -116,74 +116,60 @@
 <body>
 
   <div class="page">
-    <!-- ====== Colonna SINISTRA (categorie a righe) ====== -->
+    <!-- ===== Colonna SINISTRA ===== -->
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin-bottom:8px;">Preview carte</h2>
 
       <!-- Creature -->
       <div class="cat">
         <div class="cat-head">
-          <h3 class="cat-title">Creature</h3>
-          <div class="cat-line"></div>
+          <h3 class="cat-title">Creature</h3><div class="cat-line"></div>
         </div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
         </div>
       </div>
 
       <!-- Incantesimi -->
       <div class="cat">
         <div class="cat-head">
-          <h3 class="cat-title">Incantesimi</h3>
-          <div class="cat-line"></div>
+          <h3 class="cat-title">Incantesimi</h3><div class="cat-line"></div>
         </div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
         </div>
       </div>
 
       <!-- Istantanee -->
       <div class="cat" style="margin-bottom:0;">
         <div class="cat-head">
-          <h3 class="cat-title">Istantanee</h3>
-          <div class="cat-line"></div>
+          <h3 class="cat-title">Istantanee</h3><div class="cat-line"></div>
         </div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async" onerror="this.parentElement.classList.add('img-error')"/></figure>
         </div>
       </div>
     </section>
 
-    <!-- ====== Colonna DESTRA (login + classifica) ====== -->
+    <!-- ===== Colonna DESTRA (login + classifica) ===== -->
     <section class="column">
-      <div class="topbar">
-        <button id="btnAuth" class="btn" type="button">Accedi</button>
-      </div>
-
+      <div class="topbar"><button id="btnAuth" class="btn" type="button">Accedi</button></div>
       <div class="card panel">
         <h2 class="title">Classifica Punti</h2>
-        <p class="muted" style="margin:0 0 12px">
-          Ogni <strong>sub</strong> vale <strong>+1 punto</strong>, ogni <strong>gift</strong> vale <strong>+N punti</strong> al gifter.
-        </p>
-        <iframe
-          class="frame"
-          src="https://api.malgax.com/leaderboard.html"
-          title="Classifica punti Malgax"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-        ></iframe>
+        <p class="muted" style="margin:0 0 12px">Ogni <strong>sub</strong> vale <strong>+1 punto</strong>, ogni <strong>gift</strong> vale <strong>+N punti</strong> al gifter.</p>
+        <iframe class="frame" src="https://api.malgax.com/leaderboard.html" title="Classifica punti Malgax" loading="lazy" referrerpolicy="no-referrer"></iframe>
       </div>
     </section>
   </div>
@@ -202,92 +188,57 @@
   <iframe class="probe" src="https://api.malgax.com/profile.html?silent=1" title="probe" aria-hidden="true"></iframe>
 
   <script>
-    /* ================= Config ================= */
     const API_ORIGIN = "https://api.malgax.com";
     const LOGIN_URL  = API_ORIGIN + "/auth/twitch?popup=1";
     const LOGOUT_URL = API_ORIGIN + "/logout?popup=1";
 
-    /* ================= UI refs ================= */
     const btnAuth = document.getElementById('btnAuth');
     const mask    = document.getElementById('mask');
     const modal   = document.getElementById('modal');
     const loginLink = document.getElementById('loginLink');
 
-    /* ================= Stato login ================= */
     let loggedIn = false;
     let authWin  = null;
     let monitor  = null;
 
-    function setUI() { btnAuth.textContent = loggedIn ? 'Logout' : 'Accedi'; }
+    function setUI(){ btnAuth.textContent = loggedIn ? 'Logout' : 'Accedi'; }
     setUI();
 
-    /* ================= Overlay & popup helpers ================= */
-    function centerSpecs(w, h) {
-      const dualScreenLeft = window.screenLeft ?? screen.left;
-      const dualScreenTop  = window.screenTop  ?? screen.top;
-      const width  = window.innerWidth  || document.documentElement.clientWidth  || screen.width;
-      const height = window.innerHeight || document.documentElement.clientHeight || screen.height;
-      const left = dualScreenLeft + Math.max(0, (width - w) / 2);
-      const top  = dualScreenTop  + Math.max(0, (height - h) / 2);
-      return `scrollbars=yes,width=${w},height=${h},top=${top},left=${left}`;
+    function centerSpecs(w,h){
+      const l = window.screenLeft ?? screen.left, t = window.screenTop ?? screen.top;
+      const W = window.innerWidth||document.documentElement.clientWidth||screen.width;
+      const H = window.innerHeight||document.documentElement.clientHeight||screen.height;
+      return `scrollbars=yes,width=${w},height=${h},top=${t+Math.max(0,(H-h)/2)},left=${l+Math.max(0,(W-w)/2)}`;
     }
-    function showModal(show) {
-      mask.style.display  = show ? 'block' : 'none';
-      modal.style.display = show ? 'flex' : 'none';
-      modal.setAttribute('aria-hidden', show ? 'false' : 'true');
-    }
-    function openPopup(url) {
+    function showModal(v){ mask.style.display = modal.style.display = v?'flex':'none'; modal.setAttribute('aria-hidden', v?'false':'true'); }
+    function openPopup(url){
       showModal(true);
-      authWin = window.open(url, 'authPopup', centerSpecs(640, 760));
-      if (!authWin || authWin.closed) {
-        showModal(false);
-        window.location.href = url.replace('?popup=1', '');
-        return;
-      }
-      monitor = setInterval(() => {
-        if (authWin.closed) {
-          clearInterval(monitor);
-          showModal(false);
-        }
-      }, 300);
+      authWin = window.open(url,'authPopup',centerSpecs(640,760));
+      if(!authWin || authWin.closed){ showModal(false); location.href = url.replace('?popup=1',''); return; }
+      monitor = setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false);} },300);
     }
 
-    /* ================= Click: Login/Logout ================= */
-    btnAuth.addEventListener('click', (e) => {
+    btnAuth.addEventListener('click',(e)=>{
       e.preventDefault();
-      if (!loggedIn) {
+      if(!loggedIn){
         loginLink.href = LOGIN_URL;
         openPopup(LOGIN_URL);
-      } else {
+      }else{
         openPopup(LOGOUT_URL);
         const start = Date.now();
-        const waitLogout = setInterval(() => {
+        const wait = setInterval(()=>{
           const closed = !authWin || authWin.closed;
-          if (closed || Date.now() - start > 6000) {
-            clearInterval(waitLogout);
-            loggedIn = false;
-            setUI();
-          }
-        }, 400);
+          if(closed || Date.now()-start>6000){ clearInterval(wait); loggedIn=false; setUI(); }
+        },400);
       }
     });
 
-    /* ================= Stato iniziale + update via postMessage ================= */
     const ALLOWED_ORIGIN = API_ORIGIN;
-    window.addEventListener('message', (event) => {
-      if (event.origin !== ALLOWED_ORIGIN) return;
-      const data = event.data || {};
-      if (data.type === 'login') {
-        loggedIn = true;
-        setUI();
-        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
-        showModal(false);
-      } else if (data.type === 'logout') {
-        loggedIn = false;
-        setUI();
-        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
-        showModal(false);
-      }
+    window.addEventListener('message',(ev)=>{
+      if(ev.origin !== ALLOWED_ORIGIN) return;
+      const d = ev.data||{};
+      if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin && !authWin.closed) authWin.close(); }catch(e){} showModal(false); }
+      if(d.type==='logout'){ loggedIn=false; setUI(); try{ if(authWin && !authWin.closed) authWin.close(); }catch(e){} showModal(false); }
     });
   </script>
 </body>
