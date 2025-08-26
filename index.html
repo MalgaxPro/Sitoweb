@@ -181,6 +181,7 @@
     window.addEventListener('message',(ev)=>{
       if(ev.origin!=="https://api.malgax.com") return;
       const d=ev.data||{};
+	  
       if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
       if(d.type==='logout'){ loggedIn=false; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
     });
