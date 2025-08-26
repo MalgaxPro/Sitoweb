@@ -1,186 +1,155 @@
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const TwitchStrategy = require('passport-twitch-new').Strategy;
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const crypto = require('crypto');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Se sei dietro proxy (Render/Ngrok), puoi abilitare:
-// app.set('trust proxy', 1);
-
-// --- DB: crea tabella se non esiste ---
-const db = new sqlite3.Database(process.env.DB_PATH || './db.sqlite');
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    twitch_id TEXT UNIQUE,
-    username TEXT,
-    points INTEGER DEFAULT 0
-  )`);
-});
-
-// --- Sessioni & Passport ---
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecret',
-  resave: false,
-  saveUninitialized: false,
-  // cookie: { secure: true, sameSite: 'lax' } // usa secure:true solo con HTTPS end-to-end
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-
-// --- Strategia Twitch (OAuth) ---
-passport.use(new TwitchStrategy(
-  {
-    clientID: process.env.TWITCH_CLIENT_ID,
-    clientSecret: process.env.TWITCH_CLIENT_SECRET,
-    callbackURL: process.env.TWITCH_CALLBACK_URL,
-    scope: 'user:read:email channel:read:subscriptions'
-  },
-  (accessToken, refreshToken, profile, done) => {
-    db.run(
-      `INSERT OR IGNORE INTO users (twitch_id, username, points) VALUES (?, ?, 0)`,
-      [profile.id, profile.display_name],
-      (err) => {
-        if (err) return done(err);
-        db.get(`SELECT * FROM users WHERE twitch_id = ?`, [profile.id], (err2, row) => {
-          done(err2, row);
-        });
-      }
-    );
-  }
-));
-
-passport.serializeUser((user, done) => done(null, user.twitch_id));
-passport.deserializeUser((id, done) => {
-  db.get(`SELECT * FROM users WHERE twitch_id = ?`, [id], (err, row) => done(err, row));
-});
-
-// === RAW body su /eventsub (per HMAC corretto) ===
-app.use('/eventsub', express.raw({ type: 'application/json' }));
-
-// Per il resto dell’app (JSON normale + static)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --- Rotte OAuth ---
-// Salva se il login è partito in popup, così lo riprendiamo al callback
-app.get('/auth/twitch',
-  (req, res, next) => {
-    if (req.query.popup === '1') req.session.oauthPopup = '1';
-    next();
-  },
-  passport.authenticate('twitch')
-);
-
-app.get('/auth/twitch/callback',
-  passport.authenticate('twitch', { failureRedirect: '/' }),
-  (req, res) => {
-    const isPopup = req.session.oauthPopup === '1' || req.query.popup === '1';
-    delete req.session.oauthPopup;
-    res.redirect(isPopup ? '/profile.html?popup=1' : '/profile.html');
-  }
-);
-
-// --- Logout (supporta popup=1 per chiudere) ---
-app.get('/logout', (req, res) => {
-  const isPopup = req.query.popup === '1';
-  req.logout?.();
-  req.session.destroy(() => {
-    if (isPopup) {
-      res.type('html').send(`
-<!DOCTYPE html><html><body style="background:#0f0f14;color:#f4f4f7;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh">
-  <div>Logout effettuato. Puoi chiudere questa finestra.</div>
-  <script>
-    try {
-      if (window.opener) {
-        window.opener.postMessage({ type: 'logout' }, 'https://www.malgax.com');
-        window.opener.postMessage({ type: 'logout' }, 'https://malgax.com');
-      }
-    } catch(e){}
-    setTimeout(function(){ try{ window.close(); }catch(e){} }, 0);
-  </script>
-</body></html>`);
-    } else {
-      res.redirect('/');
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Malgax — Login & Classifica</title>
+  <meta name="description" content="Accedi con Twitch e guarda la classifica punti delle sub sul canale di Malgax." />
+  <style>
+    :root { --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
+      color: var(--text);
+      display:flex; min-height:100vh;
     }
-  });
-});
+    .shell { width:100%; display:flex; justify-content:flex-end; align-items:center; padding:24px; }
+    .column { width: min(560px, 100%); display:flex; flex-direction:column; gap:16px; align-items:stretch; }
+    .topbar { display:flex; justify-content:flex-end; position:relative; z-index:3; }
+    .btn {
+      appearance:none; border:none; cursor:pointer; user-select:none;
+      padding:10px 14px; border-radius:10px; font-weight:700; transition:transform .05s ease;
+      display:inline-block; line-height:1; background:var(--twitch); color:#fff;
+    }
+    .btn:active { transform: translateY(1px); }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25); overflow:hidden; }
+    .panel { padding: 18px; }
+    .muted { color: var(--muted); font-size:14px; line-height:1.55; }
+    .title { font-size:20px; margin:0 0 10px; }
+    .frame { width:100%; height:65vh; border:0; background:#0c0c12; display:block; }
+    @media (max-width: 720px) { .frame { height: 60vh; } }
+    .modal-mask { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998; }
+    .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal .box { width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center; }
+    .modal .hint { color:var(--muted); font-size:13px; margin-top:8px; }
+    .probe { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="column">
 
-// --- API ---
-app.get('/me', (req, res) => {
-  if (!req.user) return res.status(401).json({ error: 'Non autenticato' });
-  res.json(req.user);
-});
+      <div class="topbar">
+        <button id="btnAuth" class="btn" type="button">Accedi</button>
+      </div>
 
-app.get('/leaderboard', (req, res) => {
-  db.all(`SELECT username, points FROM users ORDER BY points DESC, username ASC LIMIT 100`, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
+      <section class="card panel">
+        <h2 class="title">Classifica Punti</h2>
+        <p class="muted" style="margin:0 0 12px">
+          Ogni <strong>sub</strong> vale <strong>+1 punto</strong>, ogni <strong>gift</strong> vale <strong>+N punti</strong> al gifter.
+        </p>
+        <iframe class="frame" src="https://api.malgax.com/leaderboard.html" title="Classifica punti Malgax" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      </section>
 
-// --- EventSub webhook ---
-app.post('/eventsub', (req, res) => {
-  const secret = process.env.TWITCH_EVENTSUB_SECRET || '';
-  const msgId = req.get('Twitch-Eventsub-Message-Id') || '';
-  const timestamp = req.get('Twitch-Eventsub-Message-Timestamp') || '';
-  const signature = (req.get('Twitch-Eventsub-Message-Signature') || '').toLowerCase();
+    </div>
+  </div>
 
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(msgId);
-  hmac.update(timestamp);
-  hmac.update(req.body); // Buffer RAW
-  const expected = 'sha256=' + hmac.digest('hex');
+  <div id="mask" class="modal-mask"></div>
+  <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="box">
+      <div style="font-weight:700; margin-bottom:6px;">Accedi con Twitch</div>
+      <div class="muted">Si sta aprendo una finestra per l’accesso…<br/>Se il popup è bloccato, <a id="loginLink" href="https://api.malgax.com/auth/twitch" style="color:#9cb3ff">clicca qui</a>.</div>
+      <div class="hint">Al termine, questa finestra si chiuderà automaticamente.</div>
+    </div>
+  </div>
 
-  if (expected !== signature) {
-    return res.status(403).type('text/plain').send('Invalid signature');
-  }
+  <!-- iFrame nascosto: rileva stato login all’apertura pagina -->
+  <iframe class="probe" src="https://api.malgax.com/profile.html?silent=1" title="probe" aria-hidden="true"></iframe>
 
-  let payload;
-  try {
-    payload = JSON.parse(req.body.toString('utf8'));
-  } catch (e) {
-    return res.status(400).type('text/plain').send('Bad JSON');
-  }
+  <script>
+    const API_ORIGIN = "https://api.malgax.com";
+    const LOGIN_URL  = API_ORIGIN + "/auth/twitch?popup=1";
+    const LOGOUT_URL = API_ORIGIN + "/logout?popup=1";
 
-  if (payload.challenge) {
-    return res.status(200).type('text/plain').send(payload.challenge);
-  }
+    const btnAuth = document.getElementById('btnAuth');
+    const mask    = document.getElementById('mask');
+    const modal   = document.getElementById('modal');
+    const loginLink = document.getElementById('loginLink');
 
-  const { subscription, event } = payload;
-  if (!subscription || !event) return res.sendStatus(200);
+    let loggedIn = false;
+    let authWin  = null;
+    let monitor  = null;
 
-  if (subscription.type === 'channel.subscribe') {
-    db.run(
-      `INSERT INTO users (twitch_id, username, points)
-       VALUES (?, ?, 1)
-       ON CONFLICT(twitch_id) DO UPDATE SET points = points + 1`,
-      [event.user_id, event.user_name]
-    );
-  }
+    function setUI() { btnAuth.textContent = loggedIn ? 'Logout' : 'Accedi'; }
+    setUI();
 
-  if (subscription.type === 'channel.subscription.gift') {
-    const giftCount = Number(event.total) || 1;
-    db.run(
-      `INSERT INTO users (twitch_id, username, points)
-       VALUES (?, ?, ?)
-       ON CONFLICT(twitch_id) DO UPDATE SET points = points + ?`,
-      [event.user_id, event.user_name, giftCount, giftCount]
-    );
-  }
+    function centerSpecs(w, h) {
+      const dualScreenLeft = window.screenLeft ?? screen.left;
+      const dualScreenTop  = window.screenTop  ?? screen.top;
+      const width  = window.innerWidth  || document.documentElement.clientWidth  || screen.width;
+      const height = window.innerHeight || document.documentElement.clientHeight || screen.height;
+      const left = dualScreenLeft + Math.max(0, (width - w) / 2);
+      const top  = dualScreenTop  + Math.max(0, (height - h) / 2);
+      return `scrollbars=yes,width=${w},height=${h},top=${top},left=${left}`;
+    }
+    function showModal(show) {
+      mask.style.display  = show ? 'block' : 'none';
+      modal.style.display = show ? 'flex' : 'none';
+      modal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+    function openPopup(url) {
+      showModal(true);
+      authWin = window.open(url, 'authPopup', centerSpecs(640, 760));
+      if (!authWin || authWin.closed) {
+        showModal(false);
+        window.location.href = url.replace('?popup=1', '');
+        return;
+      }
+      monitor = setInterval(() => {
+        if (authWin.closed) {
+          clearInterval(monitor);
+          showModal(false);
+        }
+      }, 300);
+    }
 
-  return res.sendStatus(200);
-});
+    btnAuth.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!loggedIn) {
+        loginLink.href = LOGIN_URL;
+        openPopup(LOGIN_URL);
+      } else {
+        openPopup(LOGOUT_URL);
+        const start = Date.now();
+        const waitLogout = setInterval(() => {
+          const closed = !authWin || authWin.closed;
+          if (closed || Date.now() - start > 6000) {
+            clearInterval(waitLogout);
+            loggedIn = false;
+            setUI();
+          }
+        }, 400);
+      }
+    });
 
-// --- Health & Avvio ---
-app.get('/health', (req, res) => res.send('OK'));
-app.listen(PORT, () => {
-  console.log(`Server avviato su http://localhost:${PORT}`);
-});
+    const ALLOWED_ORIGIN = API_ORIGIN;
+    window.addEventListener('message', (event) => {
+      if (event.origin !== ALLOWED_ORIGIN) return;
+      const data = event.data || {};
+      if (data.type === 'login') {
+        loggedIn = true;
+        setUI();
+        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
+        showModal(false);
+      } else if (data.type === 'logout') {
+        loggedIn = false;
+        setUI();
+        try { if (authWin && !authWin.closed) authWin.close(); } catch(e){}
+        showModal(false);
+      }
+    });
+  </script>
+</body>
+</html>
