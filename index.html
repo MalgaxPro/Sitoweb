@@ -211,7 +211,30 @@
       .inv-grid{ grid-template-columns:1fr 1fr; }
       .inv-drawer{ width:92vw; }
     }
-  </style>
+  /* --- Header actions (pill + button) --- */
+		.hero-actions{ display:flex; align-items:center; gap:10px; }
+		.user-pill{
+		  display:flex; align-items:center; gap:8px;
+		  background:rgba(255,255,255,.06);
+		  border:1px solid rgba(255,255,255,.12);
+		  padding:6px 10px; border-radius:999px;
+		  font-weight:700; color:#e9e9ff;
+		}
+		.user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+		.coin-icon{
+		  width:14px; height:14px; border-radius:50%;
+		  display:inline-block;
+		  background:
+			radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%);
+		  box-shadow:
+			inset 0 0 0 1px rgba(0,0,0,.25),
+			0 1px 4px rgba(0,0,0,.35);
+		}
+
+		/* opzionale: numero punti in tabular per allineamento */
+		.user-unspent{ font-variant-numeric: tabular-nums; }
+
+	</style>
 </head>
 <body>
 
