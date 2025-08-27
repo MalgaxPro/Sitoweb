@@ -135,7 +135,8 @@
       backdrop-filter: blur(2px);
     }
     .viewer{
-      width:min(92vw, 900px);
+      /* 1/3 della dimensione precedente: 92vw→~30.666vw, 900px→300px */
+      width: clamp(220px, 30.666vw, 300px);
       aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); /* 2:3 */
       perspective: 1400px;
       position:relative;
@@ -432,7 +433,6 @@
     });
 
     viewerMask.addEventListener('click', (e)=>{
-      // chiudi solo se clicchi fuori dal riquadro (mask) o sul bottone
       if(e.target === viewerMask) closeViewer();
     });
     viewerClose.addEventListener('click', closeViewer);
@@ -453,8 +453,8 @@
       const rect = viewer.getBoundingClientRect();
       const px = (ev.clientX - rect.left) / rect.width;
       const py = (ev.clientY - rect.top) / rect.height;
-      const rx = (0.5 - py) * MAX_TILT;     // X negativo => in alto
-      const ry = (px - 0.5) * MAX_TILT;     // Y positivo => destra
+      const rx = (0.5 - py) * MAX_TILT;
+      const ry = (px - 0.5) * MAX_TILT;
 
       if(!ticking){
         window.requestAnimationFrame(()=>{
