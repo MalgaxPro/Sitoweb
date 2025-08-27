@@ -38,10 +38,11 @@
       display:flex; align-items:center; gap:10px;
       text-shadow: 0 2px 20px rgba(100,65,165,.35);
     }
-    .hero-badge{
-      font-size:12px; color:#d9d9ff; background:rgba(100,65,165,.2);
-      border:1px solid rgba(255,255,255,.15); padding:6px 10px; border-radius:999px;
+    .btn{
+      appearance:none; border:0; cursor:pointer; user-select:none;
+      padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
     }
+    .hero-login{ padding:8px 12px; }
 
     /* ===== Layout 60% / 40% ===== */
     .page{
@@ -52,14 +53,8 @@
     }
     @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
 
-    /* ===== Colonna destra (login + leaderboard + regole) ===== */
+    /* ===== Colonna destra (leaderboard + regole) ===== */
     .column{ display:flex; flex-direction:column; gap:16px }
-    .topbar{ display:flex; justify-content:flex-end; position:sticky; top:0; z-index:5; padding-bottom:8px; background:transparent }
-    .btn{
-      appearance:none; border:0; cursor:pointer; user-select:none;
-      padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
-    }
-	.hero-login{ padding:8px 12px; }
     .card{ background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.25); overflow:hidden }
     .panel{ padding:18px }
     .muted{ color:var(--muted); font-size:14px; line-height:1.55 }
@@ -89,7 +84,7 @@
       background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); font-size:13px; color:#dfe0ff;
     }
 
-    /* ===== Colonna sinistra (categorie) ===== */
+    /* ===== Colonna sinistra (categorie carte) ===== */
     .left-card{
       background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
       border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35)
@@ -116,7 +111,6 @@
       transition: transform .2s ease;
     }
     .card-item:hover{ transform: translateY(-2px) }
-
     .card-item img{ width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto; }
 
     /* iFrame di probing nascosto */
@@ -165,7 +159,6 @@
       transform: translateZ(40px);
       opacity:.65;
     }
-
     /* Pulsanti azione viewer */
     .viewer-actions{
       position:absolute; top:-46px; right:0; display:flex; gap:8px;
@@ -175,78 +168,58 @@
       padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700;
       box-shadow:0 6px 20px rgba(0,0,0,.4);
     }
-    @media (max-width:720px){
-      .viewer-actions{ top:-52px }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .viewer-inner{ transition: none }
-    }
-	
-	/* ==== INVENTORY DRAWER (slide-in) ==== */
-.inv-toggle{
-  position:fixed; right:0; top:50%; transform:translateY(-50%);
-  writing-mode:vertical-rl; text-orientation:mixed;
-  background:#6441a5; color:#fff; border:0; border-radius:10px 0 0 10px;
-  padding:12px 10px; font-weight:800; letter-spacing:.5px; cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,.35); z-index:11000;
-}
-.inv-mask{
-  position:fixed; inset:0; background:rgba(0,0,0,.5);
-  display:none; z-index:10990;
-}
-.inv-drawer{
-  position:fixed; right:-420px; top:0; height:100vh; width:380px; max-width:88vw;
-  background:#11131a; border-left:1px solid rgba(255,255,255,.12);
-  box-shadow:-12px 0 28px rgba(0,0,0,.45);
-  z-index:11010; display:flex; flex-direction:column; transition:right .25s ease;
-}
-.inv-drawer.open{ right:0; }
-.inv-head{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.08);
-}
-.inv-title{ margin:0; font-size:16px; }
-.inv-close{
-  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.2);
-  border-radius:8px; padding:6px 10px; cursor:pointer;
-}
-.inv-body{ padding:12px; overflow:auto; }
-.inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
-.inv-card{ background:#16161f; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; }
-.inv-thumb{ aspect-ratio:2/3; background:#0b0b10; display:flex; align-items:center; justify-content:center; }
-.inv-thumb img{ width:100%; height:100%; object-fit:contain; }
-.inv-info{ padding:8px 10px; font-size:13px; color:#dcdcf0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.inv-q{ color:#a4a4b5; font-variant-numeric:tabular-nums; }
-.inv-empty{ color:#a4a4b5; text-align:center; padding:16px 8px; }
-@media (max-width:620px){
-  .inv-grid{ grid-template-columns:1fr 1fr; }
-  .inv-drawer{ width:92vw; }
-}
+    @media (max-width:720px){ .viewer-actions{ top:-52px } }
+    @media (prefers-reduced-motion: reduce){ .viewer-inner{ transition: none } }
 
-</style>
-
+    /* ==== INVENTORY DRAWER (slide-in) ==== */
+    .inv-toggle{
+      position:fixed; right:0; top:50%; transform:translateY(-50%);
+      writing-mode:vertical-rl; text-orientation:mixed;
+      background:#6441a5; color:#fff; border:0; border-radius:10px 0 0 10px;
+      padding:12px 10px; font-weight:800; letter-spacing:.5px; cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,.35); z-index:11000;
+    }
+    .inv-mask{
+      position:fixed; inset:0; background:rgba(0,0,0,.5);
+      display:none; z-index:10990;
+    }
+    .inv-drawer{
+      position:fixed; right:-420px; top:0; height:100vh; width:380px; max-width:88vw;
+      background:#11131a; border-left:1px solid rgba(255,255,255,.12);
+      box-shadow:-12px 0 28px rgba(0,0,0,.45);
+      z-index:11010; display:flex; flex-direction:column; transition:right .25s ease;
+    }
+    .inv-drawer.open{ right:0; }
+    .inv-head{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .inv-title{ margin:0; font-size:16px; }
+    .inv-close{
+      background:transparent; color:#fff; border:1px solid rgba(255,255,255,.2);
+      border-radius:8px; padding:6px 10px; cursor:pointer;
+    }
+    .inv-body{ padding:12px; overflow:auto; }
+    .inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .inv-card{ background:#16161f; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; }
+    .inv-thumb{ aspect-ratio:2/3; background:#0b0b10; display:flex; align-items:center; justify-content:center; }
+    .inv-thumb img{ width:100%; height:100%; object-fit:contain; }
+    .inv-info{ padding:8px 10px; font-size:13px; color:#dcdcf0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .inv-q{ color:#a4a4b5; font-variant-numeric:tabular-nums; }
+    .inv-empty{ color:#a4a4b5; text-align:center; padding:16px 8px; }
+    @media (max-width:620px){
+      .inv-grid{ grid-template-columns:1fr 1fr; }
+      .inv-drawer{ width:92vw; }
+    }
+  </style>
 </head>
-
-<!-- Bottone verticale Inventario + Drawer -->
-<button id="invToggle" class="inv-toggle" type="button">Inventario</button>
-<div id="invMask" class="inv-mask"></div>
-
-<aside id="invDrawer" class="inv-drawer" aria-hidden="true" aria-label="Inventario">
-  <div class="inv-head">
-    <h3 class="inv-title">🎒 Inventario</h3>
-    <button id="invClose" class="inv-close" type="button">Chiudi</button>
-  </div>
-  <div id="invBody" class="inv-body">
-    <div class="inv-empty">Caricamento…</div>
-  </div>
-</aside>
-
 <body>
 
   <!-- ===== Intestazione ===== -->
   <header class="hero">
     <div class="hero-inner">
       <h1 class="hero-title">🔥 No Udyr challeng</h1>
+      <!-- Pulsante login spostato qui -->
       <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
     </div>
   </header>
@@ -256,21 +229,19 @@
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin:0 0 8px">Preview carte</h2>
 
-<!-- Creature (con tab Costo 2 / 3 / 5) -->
+      <!-- Creature con sub-tab Costo 2/3/5 -->
       <div class="cat" id="cat-creature">
         <div class="cat-head">
           <h3 class="cat-title"><span class="cat-emoji">🐉</span> Creature</h3>
           <div class="cat-line"></div>
         </div>
 
-        <!-- Sub-tabs -->
         <nav class="tabs" role="tablist" aria-label="Creature per costo" style="margin:4px 0 10px;">
           <button class="tab is-active" role="tab" aria-selected="true" aria-controls="crea-2" data-target="crea-2">Costo 2</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-3" data-target="crea-3">Costo 3</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
         </nav>
 
-        <!-- Pannello: Costo 2 -->
         <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2">
           <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
@@ -285,7 +256,6 @@
           <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
         </div>
 
-        <!-- Pannello: Costo 3 -->
         <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none">
           <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
@@ -300,7 +270,6 @@
           <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
         </div>
 
-        <!-- Pannello: Costo 5 -->
         <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none">
           <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
@@ -314,29 +283,7 @@
           <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
         </div>
-
-        <!-- Script locale per i sub-tab delle Creature -->
-        <script>
-          (function(){
-            const root  = document.getElementById('cat-creature');
-            const tabs  = root.querySelectorAll('.tabs .tab');
-            const panes = root.querySelectorAll('[role="tabpanel"]');
-            tabs.forEach(btn=>{
-              btn.addEventListener('click', ()=>{
-                // tab UI
-                tabs.forEach(b=>b.classList.remove('is-active'));
-                btn.classList.add('is-active');
-                // pannelli
-                panes.forEach(p=>p.style.display='none');
-                const id = btn.dataset.target;
-                const pane = root.querySelector('#'+id);
-                if(pane) pane.style.display = '';
-              });
-            });
-          })();
-        </script>
       </div>
-
 
       <!-- Incantesimi -->
       <div class="cat">
@@ -383,7 +330,6 @@
 
     <!-- ===== Colonna DESTRA (40%) ===== -->
     <section class="column">
-      
       <!-- Classifica con TAB -->
       <div class="card">
         <nav class="tabs" role="tablist" aria-label="Selettore classifica">
@@ -455,8 +401,6 @@
         <img id="viewerImg" class="viewer-img" src="" alt="" />
         <div id="viewerShine" class="viewer-shine"></div>
       </div>
-
-      <!-- Pulsanti azione -->
       <div class="viewer-actions">
         <button id="viewerBuy" class="viewer-btn" type="button">🛒 Compra</button>
         <button id="viewerClose" class="viewer-btn" type="button" aria-label="Chiudi">✕ Chiudi</button>
@@ -464,62 +408,20 @@
     </div>
   </div>
 
-  /* ===== INVENTORY DRAWER ===== */
-  const invToggle = document.getElementById('invToggle');
-  const invMask   = document.getElementById('invMask');
-  const invDrawer = document.getElementById('invDrawer');
-  const invBody   = document.getElementById('invBody');
-  const invClose  = document.getElementById('invClose');
+  <!-- Bottone verticale Inventario + Drawer -->
+  <button id="invToggle" class="inv-toggle" type="button">Inventario</button>
+  <div id="invMask" class="inv-mask"></div>
+  <aside id="invDrawer" class="inv-drawer" aria-hidden="true" aria-label="Inventario">
+    <div class="inv-head">
+      <h3 class="inv-title">🎒 Inventario</h3>
+      <button id="invClose" class="inv-close" type="button">Chiudi</button>
+    </div>
+    <div id="invBody" class="inv-body">
+      <div class="inv-empty">Caricamento…</div>
+    </div>
+  </aside>
 
-  async function loadInventory(){
-    invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
-    try{
-      const res = await fetch('/inventory', { cache:'no-store' });
-      if(res.status === 401){
-        invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
-        const b = document.getElementById('invLoginBtn');
-        if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
-        return;
-      }
-      const data = await res.json();
-      if(!Array.isArray(data) || data.length === 0){
-        invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
-        return;
-      }
-      const grid = document.createElement('div');
-      grid.className = 'inv-grid';
-      data.forEach(it=>{
-        const card = document.createElement('div');
-        card.className = 'inv-card';
-        card.innerHTML = `
-          <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
-          <div class="inv-info"><span>${it.name}</span><span class="inv-q">x${it.quantity}</span></div>
-        `;
-        grid.appendChild(card);
-      });
-      invBody.innerHTML = '';
-      invBody.appendChild(grid);
-    }catch(e){
-      invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
-    }
-  }
-
-  function openInventory(){
-    invMask.style.display = 'block';
-    invDrawer.classList.add('open');
-    invDrawer.setAttribute('aria-hidden', 'false');
-    loadInventory();
-  }
-  function closeInventory(){
-    invMask.style.display = 'none';
-    invDrawer.classList.remove('open');
-    invDrawer.setAttribute('aria-hidden', 'true');
-  }
-
-  invToggle.addEventListener('click', openInventory);
-  invClose .addEventListener('click', closeInventory);
-  invMask  .addEventListener('click', closeInventory);
-		 </script>
+  <script>
     const API_ORIGIN="https://api.malgax.com";
     const LOGIN_URL =API_ORIGIN+"/auth/twitch?popup=1";
     const LOGOUT_URL=API_ORIGIN+"/logout?popup=1";
@@ -566,22 +468,42 @@
     /* ===== Tabs classifica (switch iframe) ===== */
     const frame = document.getElementById('leaderboardFrame');
     const lbTitle = document.getElementById('lb-title');
-    const tabs = document.querySelectorAll('.card > .tabs .tab');
-    tabs.forEach(tab=>{
-      if(!tab.dataset.target) return;
-      tab.addEventListener('click', ()=>{
-        tabs.forEach(t=>t.classList.remove('is-active'));
-        tab.classList.add('is-active');
-        const target = tab.dataset.target;
-        if(target === 'donators'){
-          frame.src = 'https://api.malgax.com/leaderboard.html';
-          lbTitle.textContent = 'Top Donator';
-        }else{
-          frame.src = 'https://api.malgax.com/unspent.html';
-          lbTitle.textContent = 'Punti non spesi';
-        }
+    (function(){
+      const tabs = document.querySelectorAll('.card > .tabs .tab');
+      tabs.forEach(tab=>{
+        if(!tab.dataset.target) return;
+        tab.addEventListener('click', ()=>{
+          tabs.forEach(t=>t.classList.remove('is-active'));
+          tab.classList.add('is-active');
+          const target = tab.dataset.target;
+          if(target === 'donators'){
+            frame.src = 'https://api.malgax.com/leaderboard.html';
+            lbTitle.textContent = 'Top Donator';
+          }else{
+            frame.src = 'https://api.malgax.com/unspent.html';
+            lbTitle.textContent = 'Punti non spesi';
+          }
+        });
       });
-    });
+    })();
+
+    /* ===== Sub-tab Creature (Costo 2/3/5) ===== */
+    (function(){
+      const root  = document.getElementById('cat-creature');
+      if(!root) return;
+      const tabs  = root.querySelectorAll('.tabs .tab');
+      const panes = root.querySelectorAll('[role="tabpanel"]');
+      tabs.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          tabs.forEach(b=>b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          panes.forEach(p=>p.style.display='none');
+          const id = btn.dataset.target;
+          const pane = root.querySelector('#'+id);
+          if(pane) pane.style.display = '';
+        });
+      });
+    })();
 
     /* ====== VIEWER: fullscreen con 3D tilt ====== */
     const viewerMask = document.getElementById('viewerMask');
@@ -649,34 +571,82 @@
 
     // movimento in tempo reale SENZA click (mouse/touch)
     function onPointerMove(ev){
-      // se l'utente muove, passa da idle a controllo diretto
       if(idle) stopIdleTilt();
-
       const rect = viewer.getBoundingClientRect();
       const px = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
       const py = Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height));
       const rx = (0.5 - py) * MAX_TILT;
       const ry = (px - 0.5) * MAX_TILT;
-
       viewerInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
       viewerShine.style.setProperty('--sx', `${px*100}%`);
       viewerShine.style.setProperty('--sy', `${py*100}%`);
     }
-    function onPointerLeave(){
-      // quando esci dall'area, torna all'idle morbido
-      startIdleTilt();
-    }
+    function onPointerLeave(){ startIdleTilt(); }
 
-    // ascolta sempre i movimenti sopra la carta in fullscreen (no click richiesto)
     viewer.addEventListener('pointermove', onPointerMove);
     viewer.addEventListener('pointerleave', onPointerLeave);
 
     // pulsante Compra (placeholder)
     btnBuy.addEventListener('click', ()=>{
-      // qui in futuro potremo aprire lo shop e scalare punti via /spend
       console.log('Compra cliccato per', viewerImg.src);
-      // esempio: alert('Funzione in arrivo!');
+      // qui potremo aprire shop o chiamare /shop/purchase con item_id
     });
+
+    /* ===== INVENTORY DRAWER ===== */
+    const invToggle = document.getElementById('invToggle');
+    const invMask   = document.getElementById('invMask');
+    const invDrawer = document.getElementById('invDrawer');
+    const invBody   = document.getElementById('invBody');
+    const invClose  = document.getElementById('invClose');
+
+    async function loadInventory(){
+      invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
+      try{
+        const res = await fetch('/inventory', { cache:'no-store' });
+        if(res.status === 401){
+          invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
+          const b = document.getElementById('invLoginBtn');
+          if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
+          return;
+        }
+        const data = await res.json();
+        if(!Array.isArray(data) || data.length === 0){
+          invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
+          return;
+        }
+        const grid = document.createElement('div');
+        grid.className = 'inv-grid';
+        data.forEach(it=>{
+          const card = document.createElement('div');
+          card.className = 'inv-card';
+          card.innerHTML = `
+            <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
+            <div class="inv-info"><span>${it.name}</span><span class="inv-q">x${it.quantity}</span></div>
+          `;
+          grid.appendChild(card);
+        });
+        invBody.innerHTML = '';
+        invBody.appendChild(grid);
+      }catch(e){
+        invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
+      }
+    }
+
+    function openInventory(){
+      invMask.style.display = 'block';
+      invDrawer.classList.add('open');
+      invDrawer.setAttribute('aria-hidden', 'false');
+      loadInventory();
+    }
+    function closeInventory(){
+      invMask.style.display = 'none';
+      invDrawer.classList.remove('open');
+      invDrawer.setAttribute('aria-hidden', 'true');
+    }
+
+    invToggle.addEventListener('click', openInventory);
+    invClose .addEventListener('click', closeInventory);
+    invMask  .addEventListener('click', closeInventory);
   </script>
 </body>
 </html>
