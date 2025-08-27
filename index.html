@@ -3,17 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Malgax — No Udyr challenge</title>
+  <title>Malgax — No Udyr challeng</title>
   <meta name="description" content="No Udyr challeng — Accedi con Twitch e guarda la classifica punti delle sub sul canale di Malgax." />
   <style>
     :root{
       --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
-      --cols-desktop: 5;   /* carte per riga (desktop) */
-      --cols-tablet: 4;
-      --cols-mobile: 2;
-      --gap: 8px;          /* spazio tra carte */
-      --ratio-w: 2;        /* immagini 1024x1536 => 2:3 */
-      --ratio-h: 3;
+      --cols-desktop: 5; --cols-tablet: 4; --cols-mobile: 2;
+      --gap: 8px; --ratio-w: 2; --ratio-h: 3;
     }
     *{box-sizing:border-box}
     html,body{min-height:100%}
@@ -116,17 +112,69 @@
       background:#0c0c12; border:1px solid rgba(255,255,255,.12); border-radius:12px;
       overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0;
       min-height: 180px;
+      transition: transform .2s ease;
     }
+    .card-item:hover{ transform: translateY(-2px) }
+
     .card-item img{ width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto; }
 
     /* iFrame di probing nascosto */
     .probe{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none }
 
-    /* Overlay popup */
+    /* Overlay popup login */
     .modal-mask{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998}
     .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999}
     .modal .box{ width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center }
     .modal .hint{ color:#a4a4b5; font-size:13px; margin-top:8px }
+
+    /* ======== VIEWER FULLSCREEN con 3D tilt ======== */
+    .viewer-mask{
+      position:fixed; inset:0; background:rgba(0,0,0,.85);
+      display:none; align-items:center; justify-content:center;
+      z-index: 10000;
+      backdrop-filter: blur(2px);
+    }
+    .viewer{
+      width:min(92vw, 900px);
+      aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); /* 2:3 */
+      perspective: 1400px;
+      position:relative;
+      touch-action: none;
+    }
+    .viewer-inner{
+      position:absolute; inset:0;
+      border-radius:16px; overflow:hidden;
+      background:#0b0b10;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform .18s ease, box-shadow .2s ease;
+    }
+    .viewer-img{
+      position:absolute; inset:0;
+      width:100%; height:100%; object-fit:contain; pointer-events:none;
+      transform: translateZ(20px);
+    }
+    .viewer-shine{
+      position:absolute; inset:-30%;
+      background: radial-gradient(800px 500px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,.22), rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen; pointer-events:none;
+      transform: translateZ(40px);
+      opacity:.65;
+    }
+    .viewer-close{
+      position:absolute; top:-46px; right:0;
+      background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff;
+      padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700;
+      box-shadow:0 6px 20px rgba(0,0,0,.4);
+    }
+    @media (max-width:720px){
+      .viewer-close{ top:-52px }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .viewer-inner{ transition: none }
+    }
   </style>
 </head>
 <body>
@@ -134,7 +182,7 @@
   <!-- ===== Intestazione ===== -->
   <header class="hero">
     <div class="hero-inner">
-      <h1 class="hero-title">🔥 No Udyr challenge</h1>
+      <h1 class="hero-title">🔥 No Udyr challeng</h1>
       <span class="hero-badge">Stagione speciale</span>
     </div>
   </header>
@@ -232,7 +280,7 @@
         </div>
       </div>
 
-      <!-- Regole (tab singolo) -->
+      <!-- Regole -->
       <div class="card">
         <nav class="tabs" role="tablist" aria-label="Regole della sfida">
           <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
@@ -263,7 +311,7 @@
     </section>
   </main>
 
-  <!-- Overlay popup -->
+  <!-- Overlay popup login -->
   <div id="mask" class="modal-mask"></div>
   <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
     <div class="box">
@@ -275,6 +323,17 @@
 
   <!-- probe stato login -->
   <iframe class="probe" src="https://api.malgax.com/profile.html?silent=1" title="probe" aria-hidden="true"></iframe>
+
+  <!-- ===== VIEWER FULLSCREEN ===== -->
+  <div id="viewerMask" class="viewer-mask" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="viewer" id="viewer">
+      <div class="viewer-inner" id="viewerInner">
+        <img id="viewerImg" class="viewer-img" src="" alt="" />
+        <div id="viewerShine" class="viewer-shine"></div>
+      </div>
+      <button id="viewerClose" class="viewer-close" type="button" aria-label="Chiudi">✕ Chiudi</button>
+    </div>
+  </div>
 
   <script>
     const API_ORIGIN="https://api.malgax.com";
@@ -323,8 +382,9 @@
     /* ===== Tabs classifica (switch iframe) ===== */
     const frame = document.getElementById('leaderboardFrame');
     const lbTitle = document.getElementById('lb-title');
-    const tabs = document.querySelectorAll('.card > .tabs .tab'); // i due tab della card classifica sono i primi .tabs dentro la .card
+    const tabs = document.querySelectorAll('.card > .tabs .tab');
     tabs.forEach(tab=>{
+      if(!tab.dataset.target) return;
       tab.addEventListener('click', ()=>{
         tabs.forEach(t=>t.classList.remove('is-active'));
         tab.classList.add('is-active');
@@ -338,6 +398,86 @@
         }
       });
     });
+
+    /* ====== VIEWER: click sulle carte => fullscreen con 3D tilt ====== */
+    const viewerMask = document.getElementById('viewerMask');
+    const viewer = document.getElementById('viewer');
+    const viewerInner = document.getElementById('viewerInner');
+    const viewerImg = document.getElementById('viewerImg');
+    const viewerShine = document.getElementById('viewerShine');
+    const viewerClose = document.getElementById('viewerClose');
+
+    function openViewer(src, alt){
+      viewerImg.src = src;
+      viewerImg.alt = alt || '';
+      viewerMask.style.display = 'flex';
+      viewerMask.setAttribute('aria-hidden','false');
+      document.documentElement.style.overflow = 'hidden';
+      resetTilt();
+    }
+    function closeViewer(){
+      viewerMask.style.display = 'none';
+      viewerMask.setAttribute('aria-hidden','true');
+      document.documentElement.style.overflow = '';
+      resetTilt();
+    }
+
+    // Delegazione click su tutte le card
+    document.addEventListener('click', (e)=>{
+      const img = e.target.closest('.card-item img');
+      if(img){
+        e.preventDefault();
+        openViewer(img.currentSrc || img.src, img.alt);
+      }
+    });
+
+    viewerMask.addEventListener('click', (e)=>{
+      // chiudi solo se clicchi fuori dal riquadro (mask) o sul bottone
+      if(e.target === viewerMask) closeViewer();
+    });
+    viewerClose.addEventListener('click', closeViewer);
+    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeViewer(); });
+
+    // 3D tilt
+    const MAX_TILT = 14; // gradi
+    let ticking = false;
+
+    function resetTilt(){
+      viewerInner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1.03)';
+      viewerShine.style.setProperty('--sx','50%');
+      viewerShine.style.setProperty('--sy','50%');
+    }
+    resetTilt();
+
+    function onPointerMove(ev){
+      const rect = viewer.getBoundingClientRect();
+      const px = (ev.clientX - rect.left) / rect.width;
+      const py = (ev.clientY - rect.top) / rect.height;
+      const rx = (0.5 - py) * MAX_TILT;     // X negativo => in alto
+      const ry = (px - 0.5) * MAX_TILT;     // Y positivo => destra
+
+      if(!ticking){
+        window.requestAnimationFrame(()=>{
+          viewerInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
+          viewerShine.style.setProperty('--sx', `${px*100}%`);
+          viewerShine.style.setProperty('--sy', `${py*100}%`);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+    function onPointerLeave(){
+      viewerInner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1.0)';
+      setTimeout(()=>resetTilt(), 120);
+    }
+
+    // Supporto mouse e touch (drag)
+    let dragging = false;
+    viewer.addEventListener('pointerdown', (e)=>{ dragging = true; viewer.setPointerCapture(e.pointerId); onPointerMove(e); });
+    viewer.addEventListener('pointermove', (e)=>{ if(dragging) onPointerMove(e); });
+    viewer.addEventListener('pointerup',   (e)=>{ dragging = false; viewer.releasePointerCapture(e.pointerId); onPointerLeave(); });
+    viewer.addEventListener('pointercancel',()=>{ dragging = false; onPointerLeave(); });
+    viewer.addEventListener('pointerleave', onPointerLeave);
   </script>
 </body>
 </html>
