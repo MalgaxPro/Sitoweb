@@ -59,6 +59,7 @@
       appearance:none; border:0; cursor:pointer; user-select:none;
       padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
     }
+	.hero-login{ padding:8px 12px; }
     .card{ background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.25); overflow:hidden }
     .panel{ padding:18px }
     .muted{ color:var(--muted); font-size:14px; line-height:1.55 }
@@ -188,7 +189,7 @@
   <header class="hero">
     <div class="hero-inner">
       <h1 class="hero-title">🔥 No Udyr challeng</h1>
-      <span class="hero-badge">Stagione speciale</span>
+      <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
     </div>
   </header>
 
@@ -324,8 +325,7 @@
 
     <!-- ===== Colonna DESTRA (40%) ===== -->
     <section class="column">
-      <div class="topbar"><button id="btnAuth" class="btn" type="button">Accedi</button></div>
-
+      
       <!-- Classifica con TAB -->
       <div class="card">
         <nav class="tabs" role="tablist" aria-label="Selettore classifica">
