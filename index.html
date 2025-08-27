@@ -8,8 +8,12 @@
   <style>
     :root{
       --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
-      --cards-per-row: 4;     /* <— quante carte per riga su desktop (porta a 5–10 se vuoi) */
-      --card-height: 300px;   /* <— altezza visiva della carta */
+      --cols-desktop: 5;   /* ← carte per riga (desktop) */
+      --cols-tablet: 4;
+      --cols-mobile: 2;
+      --gap: 8px;          /* ← spazio tra carte (ridotto) */
+      --ratio-w: 2;        /* immagini 1024x1536 => 2:3 */
+      --ratio-h: 3;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -19,10 +23,10 @@
       color:var(--text); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:24px;
     }
 
-    /* ===== Layout 2 colonne ===== */
+    /* ===== Layout 60% / 40% ===== */
     .page{
-      width:100%; max-width:1440px;            /* <— più larga per avere carte più grandi */
-      display:grid; grid-template-columns: 1.2fr 560px; gap:24px; align-items:start;
+      width:100%; max-width:1600px;
+      display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start;
     }
     @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
 
@@ -40,86 +44,110 @@
     .frame{ width:100%; height:65vh; border:0; background:#0c0c12; display:block }
     @media (max-width:720px){ .frame{ height:60vh } }
 
-    /* ===== Colonna sinistra (righe per categoria) ===== */
-    .left-card{ background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35) }
+    /* ===== Colonna sinistra (categorie) ===== */
+    .left-card{
+      background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35)
+    }
     .cat{ margin-bottom:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px }
     .cat-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px }
     .cat-title{ margin:0; font-size:16px; color:#eaeaf0 }
     .cat-line{ height:1px; background:var(--line); flex:1; border-radius:1px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
 
+    /* 2 righe piene — 10 carte totali (5x2) su desktop */
     .cards-row{
-      display:grid; gap:12px;
-      grid-template-columns: repeat(var(--cards-per-row), 1fr);
-      align-items:stretch;
+      display:grid; gap: var(--gap);
+      grid-template-columns: repeat(var(--cols-desktop), 1fr);
     }
-    @media (max-width:980px){ .cards-row{ grid-template-columns:repeat(3,1fr) } }
-    @media (max-width:620px){ .cards-row{ grid-template-columns:repeat(2,1fr) } }
+    @media (max-width:980px){ .cards-row{ grid-template-columns: repeat(var(--cols-tablet), 1fr) } }
+    @media (max-width:620px){ .cards-row{ grid-template-columns: repeat(var(--cols-mobile), 1fr) } }
 
-    /* Contenitori GRANDI, proporzioni corrette, niente tagli */
     .card-item{
-      position:relative; height:var(--card-height);
+      position:relative;
+      aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); /* 2:3 */
       background:#0c0c12; border:1px solid rgba(255,255,255,.12); border-radius:12px;
       overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0;
+      min-height: 180px; /* evita carte minuscole su schermi stretti */
     }
     .card-item img{
-      width:100%; height:100%; object-fit:contain; display:block;
-      image-rendering:auto; /* mantenere qualità quando si scala */
+      width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto;
     }
 
-    /* ===== Overlay popup ===== */
+    /* iFrame di probing nascosto */
+    .probe{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none }
+
+    /* Overlay popup */
     .modal-mask{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998}
     .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999}
     .modal .box{ width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center }
     .modal .hint{ color:#a4a4b5; font-size:13px; margin-top:8px }
-
-    .probe{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none }
   </style>
 </head>
 <body>
 
   <div class="page">
-    <!-- ===== Colonna SINISTRA ===== -->
+    <!-- ===== Colonna SINISTRA (60%) ===== -->
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin-bottom:8px;">Preview carte</h2>
 
-      <!-- Creature -->
+      <!-- Creature (10 carte: 5 per riga x 2 righe) -->
       <div class="cat">
         <div class="cat-head"><h3 class="cat-title">Creature</h3><div class="cat-line"></div></div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
         </div>
       </div>
 
-      <!-- Incantesimi -->
+      <!-- Incantesimi (10 carte) -->
       <div class="cat">
         <div class="cat-head"><h3 class="cat-title">Incantesimi</h3><div class="cat-line"></div></div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
+          <figure class="card-item"><img src="/assets/img/incantesimi.png" alt="Incantesimo"/></figure>
         </div>
       </div>
 
-      <!-- Istantanee -->
+      <!-- Istantanee (10 carte) -->
       <div class="cat" style="margin-bottom:0;">
         <div class="cat-head"><h3 class="cat-title">Istantanee</h3><div class="cat-line"></div></div>
         <div class="cards-row">
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
-          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea" loading="lazy" decoding="async"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
+          <figure class="card-item"><img src="/assets/img/istantanea.png" alt="Istantanea"/></figure>
         </div>
       </div>
     </section>
 
-    <!-- ===== Colonna DESTRA ===== -->
+    <!-- ===== Colonna DESTRA (40%) ===== -->
     <section class="column">
       <div class="topbar"><button id="btnAuth" class="btn" type="button">Accedi</button></div>
-
       <div class="card panel">
         <h2 class="title">Classifica Punti</h2>
         <p class="muted" style="margin:0 0 12px">Ogni <strong>sub</strong> vale <strong>+1 punto</strong>, ogni <strong>gift</strong> vale <strong>+N punti</strong> al gifter.</p>
@@ -181,7 +209,6 @@
     window.addEventListener('message',(ev)=>{
       if(ev.origin!=="https://api.malgax.com") return;
       const d=ev.data||{};
-	  
       if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
       if(d.type==='logout'){ loggedIn=false; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
     });
