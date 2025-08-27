@@ -8,31 +8,35 @@
   <style>
     :root{
       --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
-      --cols-desktop: 5;   /* ← carte per riga (desktop) */
+      --cols-desktop: 5;   /* carte per riga (desktop) */
       --cols-tablet: 4;
       --cols-mobile: 2;
-      --gap: 8px;          /* ← spazio tra carte (ridotto) */
+      --gap: 8px;          /* spazio tra carte */
       --ratio-w: 2;        /* immagini 1024x1536 => 2:3 */
       --ratio-h: 3;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{min-height:100%}
     body{
       margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
-      color:var(--text); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:24px;
+      color:var(--text);
+      /* 🔧 rimosso il flex centering che “nascondeva” la parte alta */
+      overflow-x:hidden;
     }
 
     /* ===== Layout 60% / 40% ===== */
     .page{
       width:100%; max-width:1600px;
+      margin:24px auto;             /* centra orizzontalmente e dà spazio dall’alto */
+      padding:0 24px;
       display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start;
     }
     @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
 
     /* ===== Colonna destra (login + leaderboard) ===== */
     .column{ display:flex; flex-direction:column; gap:16px }
-    .topbar{ display:flex; justify-content:flex-end }
+    .topbar{ display:flex; justify-content:flex-end; position:sticky; top:0; z-index:5; padding-bottom:8px; background:transparent }
     .btn{
       appearance:none; border:0; cursor:pointer; user-select:none;
       padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
@@ -85,12 +89,12 @@
 </head>
 <body>
 
-  <div class="page">
+  <main class="page">
     <!-- ===== Colonna SINISTRA (60%) ===== -->
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin-bottom:8px;">Preview carte</h2>
 
-      <!-- Creature (10 carte: 5 per riga x 2 righe) -->
+      <!-- Creature -->
       <div class="cat">
         <div class="cat-head"><h3 class="cat-title">Creature</h3><div class="cat-line"></div></div>
         <div class="cards-row">
@@ -108,7 +112,7 @@
         </div>
       </div>
 
-      <!-- Incantesimi (10 carte) -->
+      <!-- Incantesimi -->
       <div class="cat">
         <div class="cat-head"><h3 class="cat-title">Incantesimi</h3><div class="cat-line"></div></div>
         <div class="cards-row">
@@ -126,7 +130,7 @@
         </div>
       </div>
 
-      <!-- Istantanee (10 carte) -->
+      <!-- Istantanee -->
       <div class="cat" style="margin-bottom:0;">
         <div class="cat-head"><h3 class="cat-title">Istantanee</h3><div class="cat-line"></div></div>
         <div class="cards-row">
@@ -154,7 +158,7 @@
         <iframe class="frame" src="https://api.malgax.com/leaderboard.html" title="Classifica punti Malgax" loading="lazy" referrerpolicy="no-referrer"></iframe>
       </div>
     </section>
-  </div>
+  </main>
 
   <!-- Overlay popup -->
   <div id="mask" class="modal-mask"></div>
