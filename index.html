@@ -197,13 +197,22 @@
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin:0 0 8px">Preview carte</h2>
 
-      <!-- Creature -->
-      <div class="cat">
+<!-- Creature (con tab Costo 2 / 3 / 5) -->
+      <div class="cat" id="cat-creature">
         <div class="cat-head">
           <h3 class="cat-title"><span class="cat-emoji">🐉</span> Creature</h3>
           <div class="cat-line"></div>
         </div>
-        <div class="cards-row">
+
+        <!-- Sub-tabs -->
+        <nav class="tabs" role="tablist" aria-label="Creature per costo" style="margin:4px 0 10px;">
+          <button class="tab is-active" role="tab" aria-selected="true" aria-controls="crea-2" data-target="crea-2">Costo 2</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="crea-3" data-target="crea-3">Costo 3</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
+        </nav>
+
+        <!-- Pannello: Costo 2 -->
+        <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2">
           <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
@@ -216,7 +225,59 @@
           <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
           <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
         </div>
+
+        <!-- Pannello: Costo 3 -->
+        <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none">
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+        </div>
+
+        <!-- Pannello: Costo 5 -->
+        <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none">
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%202.png" alt="Creatura 2"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%203.png" alt="Creatura 3"/></figure>
+          <figure class="card-item"><img src="/assets/img/creature%205.png" alt="Creatura 5"/></figure>
+        </div>
+
+        <!-- Script locale per i sub-tab delle Creature -->
+        <script>
+          (function(){
+            const root  = document.getElementById('cat-creature');
+            const tabs  = root.querySelectorAll('.tabs .tab');
+            const panes = root.querySelectorAll('[role="tabpanel"]');
+            tabs.forEach(btn=>{
+              btn.addEventListener('click', ()=>{
+                // tab UI
+                tabs.forEach(b=>b.classList.remove('is-active'));
+                btn.classList.add('is-active');
+                // pannelli
+                panes.forEach(p=>p.style.display='none');
+                const id = btn.dataset.target;
+                const pane = root.querySelector('#'+id);
+                if(pane) pane.style.display = '';
+              });
+            });
+          })();
+        </script>
       </div>
+
 
       <!-- Incantesimi -->
       <div class="cat">
