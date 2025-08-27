@@ -44,6 +44,27 @@
     }
     .hero-login{ padding:8px 12px; }
 
+    /* --- Header actions (pill + button) --- */
+    .hero-actions{ display:flex; align-items:center; gap:10px; }
+    .user-pill{
+      display:flex; align-items:center; gap:8px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      padding:6px 10px; border-radius:999px;
+      font-weight:700; color:#e9e9ff;
+    }
+    .user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .coin-icon{
+      width:14px; height:14px; border-radius:50%;
+      display:inline-block;
+      background:
+        radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(0,0,0,.25),
+        0 1px 4px rgba(0,0,0,.35);
+    }
+    .user-unspent{ font-variant-numeric: tabular-nums; }
+
     /* ===== Layout 60% / 40% ===== */
     .page{
       width:100%; max-width:1600px;
@@ -211,30 +232,7 @@
       .inv-grid{ grid-template-columns:1fr 1fr; }
       .inv-drawer{ width:92vw; }
     }
-  /* --- Header actions (pill + button) --- */
-		.hero-actions{ display:flex; align-items:center; gap:10px; }
-		.user-pill{
-		  display:flex; align-items:center; gap:8px;
-		  background:rgba(255,255,255,.06);
-		  border:1px solid rgba(255,255,255,.12);
-		  padding:6px 10px; border-radius:999px;
-		  font-weight:700; color:#e9e9ff;
-		}
-		.user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-		.coin-icon{
-		  width:14px; height:14px; border-radius:50%;
-		  display:inline-block;
-		  background:
-			radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%);
-		  box-shadow:
-			inset 0 0 0 1px rgba(0,0,0,.25),
-			0 1px 4px rgba(0,0,0,.35);
-		}
-
-		/* opzionale: numero punti in tabular per allineamento */
-		.user-unspent{ font-variant-numeric: tabular-nums; }
-
-	</style>
+  </style>
 </head>
 <body>
 
@@ -242,15 +240,14 @@
   <header class="hero">
     <div class="hero-inner">
       <h1 class="hero-title">🔥 No Udyr challeng</h1>
-      <!-- Pulsante login spostato qui -->
-		<div class="hero-actions">
-			  <div id="userPill" class="user-pill" style="display:none">
-				<span id="userName" class="user-name">—</span>
-				<span class="coin-icon" aria-hidden="true"></span>
-				<span id="userUnspent" class="user-unspent">0</span>
-			  </div>
-		  <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
-		</div>
+      <div class="hero-actions">
+        <div id="userPill" class="user-pill" style="display:none">
+          <span id="userName" class="user-name">—</span>
+          <span class="coin-icon" aria-hidden="true"></span>
+          <span id="userUnspent" class="user-unspent">0</span>
+        </div>
+        <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
+      </div>
     </div>
   </header>
 
@@ -478,22 +475,64 @@
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
     }
 
+    // ===== User pill (nome + punti) =====
+    const pillEl     = document.getElementById('userPill');
+    const pillNameEl = document.getElementById('userName');
+    const pillPtsEl  = document.getElementById('userUnspent');
+
+    async function fetchMe(){
+      try{
+        const res = await fetch(`${API_ORIGIN}/me`, { credentials:'include', cache:'no-store' });
+        if(!res.ok) return null;
+        return await res.json();
+      }catch(e){ return null; }
+    }
+    async function updateUserPill(){
+      const me = await fetchMe();
+      if(me && (me.username || me.user || me.twitch_username)){
+        const username = me.username || me.user || me.twitch_username || 'Utente';
+        const unspent  = (typeof me.unspent_points === 'number') ? me.unspent_points
+                     : (typeof me.points === 'number') ? me.points
+                     : 0;
+        pillNameEl.textContent = username;
+        pillPtsEl.textContent  = unspent;
+        pillEl.style.display   = 'flex';
+        loggedIn = true;
+        setUI();
+      }else{
+        pillEl.style.display = 'none';
+      }
+    }
+
     btnAuth.addEventListener('click',(e)=>{
       e.preventDefault();
       if(!loggedIn){ loginLink.href=LOGIN_URL; openPopup(LOGIN_URL); }
       else{
         openPopup(LOGOUT_URL);
         const start=Date.now();
-        const wait=setInterval(()=>{ const closed=!authWin||authWin.closed; if(closed||Date.now()-start>6000){ clearInterval(wait); loggedIn=false; setUI(); } },400);
+        const wait=setInterval(()=>{ const closed=!authWin||authWin.closed; if(closed||Date.now()-start>6000){ clearInterval(wait); loggedIn=false; setUI(); pillEl.style.display='none'; } },400);
       }
     });
 
     window.addEventListener('message',(ev)=>{
-      if(ev.origin!=="https://api.malgax.com") return;
+      if(ev.origin !== API_ORIGIN) return;
       const d=ev.data||{};
-      if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
-      if(d.type==='logout'){ loggedIn=false; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
+      if(d.type==='login'){
+        loggedIn=true; setUI();
+        try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){}
+        showModal(false);
+        updateUserPill();
+      }
+      if(d.type==='logout'){
+        loggedIn=false; setUI();
+        pillEl.style.display='none';
+        try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){}
+        showModal(false);
+      }
     });
+
+    // All'avvio, prova a leggere lo stato (se già loggato da cookie)
+    updateUserPill();
 
     /* ===== Tabs classifica (switch iframe) ===== */
     const frame = document.getElementById('leaderboardFrame');
@@ -544,7 +583,6 @@
     const btnBuy = document.getElementById('viewerBuy');
     const btnClose = document.getElementById('viewerClose');
 
-    // Stato rotazione
     const MAX_TILT = 14; // gradi
     let idle = false, idleRAF = 0, idleStart = 0;
 
@@ -575,7 +613,7 @@
       viewerMask.style.display = 'flex';
       viewerMask.setAttribute('aria-hidden','false');
       document.documentElement.style.overflow = 'hidden';
-      startIdleTilt(); // parte subito a girare
+      startIdleTilt();
     }
     function closeViewer(){
       viewerMask.style.display = 'none';
@@ -585,7 +623,6 @@
       viewerInner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1.0)';
     }
 
-    // click su card => apri viewer
     document.addEventListener('click', (e)=>{
       const img = e.target.closest('.card-item img');
       if(img){
@@ -594,12 +631,10 @@
       }
     });
 
-    // chiusure
     viewerMask.addEventListener('click', (e)=>{ if(e.target === viewerMask) closeViewer(); });
     btnClose.addEventListener('click', closeViewer);
     window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeViewer(); });
 
-    // movimento in tempo reale SENZA click (mouse/touch)
     function onPointerMove(ev){
       if(idle) stopIdleTilt();
       const rect = viewer.getBoundingClientRect();
@@ -616,10 +651,9 @@
     viewer.addEventListener('pointermove', onPointerMove);
     viewer.addEventListener('pointerleave', onPointerLeave);
 
-    // pulsante Compra (placeholder)
     btnBuy.addEventListener('click', ()=>{
       console.log('Compra cliccato per', viewerImg.src);
-      // qui potremo aprire shop o chiamare /shop/purchase con item_id
+      // in futuro: aprire shop o chiamare /shop/purchase con item_id
     });
 
     /* ===== INVENTORY DRAWER ===== */
@@ -632,7 +666,7 @@
     async function loadInventory(){
       invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
       try{
-        const res = await fetch('/inventory', { cache:'no-store' });
+        const res = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
         if(res.status === 401){
           invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
           const b = document.getElementById('invLoginBtn');
