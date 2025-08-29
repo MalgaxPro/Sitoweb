@@ -142,11 +142,17 @@
     .inv-close{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; cursor:pointer; }
     .inv-body{ padding:12px; overflow:auto; }
     .inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
-    .inv-card{ background:#16161f; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; }
+    .inv-card{ background:#16161f; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; display:flex; flex-direction:column }
     .inv-thumb{ aspect-ratio:2/3; background:#0b0b10; display:flex; align-items:center; justify-content:center; }
     .inv-thumb img{ width:100%; height:100%; object-fit:contain; }
     .inv-info{ padding:8px 10px; font-size:13px; color:#dcdcf0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .inv-q{ color:#a4a4b5; font-variant-numeric:tabular-nums; }
+    .inv-actions{ display:flex; gap:8px; padding:8px 10px 12px; border-top:1px solid rgba(255,255,255,.06); }
+    .inv-btn{
+      background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff;
+      padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700;
+    }
+    .inv-btn[disabled]{ opacity:.6; cursor:not-allowed; }
     .inv-empty{ color:#a4a4b5; text-align:center; padding:16px 8px; }
     @media (max-width:620px){
       .inv-grid{ grid-template-columns:1fr 1fr; }
@@ -186,17 +192,9 @@
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
         </nav>
 
-        <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2">
-          <!-- items costo 2 -->
-        </div>
-
-        <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none">
-          <!-- items costo 3 -->
-        </div>
-
-        <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none">
-          <!-- items costo 5 -->
-        </div>
+        <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2"></div>
+        <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none"></div>
+        <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none"></div>
       </div>
 
       <div class="cat" id="cat-spell">
@@ -204,9 +202,7 @@
           <h3 class="cat-title"><span class="cat-emoji">🪄</span> Incantesimi</h3>
           <div class="cat-line"></div>
         </div>
-        <div class="cards-row" id="spellsRow">
-          <!-- spell -->
-        </div>
+        <div class="cards-row" id="spellsRow"></div>
       </div>
 
       <div class="cat" id="cat-instant" style="margin-bottom:0;">
@@ -214,9 +210,7 @@
           <h3 class="cat-title"><span class="cat-emoji">⚡</span> Istantanee</h3>
           <div class="cat-line"></div>
         </div>
-        <div class="cards-row" id="instantsRow">
-          <!-- instant -->
-        </div>
+        <div class="cards-row" id="instantsRow"></div>
       </div>
     </section>
 
@@ -519,7 +513,6 @@
     }
 
     async function loadAndRenderItems(){
-      // placeholder “caricamento…”
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
         if(!el) return;
         el.innerHTML = '';
@@ -537,14 +530,12 @@
         if(r.ok) items = await r.json();
       }catch(_){}
 
-      // svuota e rendi
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
 
       const creatures = items.filter(i=>i.kind==='creature');
       const spells    = items.filter(i=>i.kind==='spell');
       const instants  = items.filter(i=>i.kind==='instant');
 
-      // Creature per costo
       const c2 = creatures.filter(i=>Number(i.cost_points)===2);
       const c3 = creatures.filter(i=>Number(i.cost_points)===3);
       const c5 = creatures.filter(i=>Number(i.cost_points)===5);
@@ -553,12 +544,10 @@
       c3.forEach(i=>crea3El.appendChild(makeCard(i)));
       c5.forEach(i=>crea5El.appendChild(makeCard(i)));
 
-      // Se una tab fosse vuota, lascia un segnaposto
       if(!c2.length) crea2El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
       if(!c3.length) crea3El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
       if(!c5.length) crea5El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
 
-      // Incantesimi / Istantanee
       if(spells.length) spells.forEach(i=>spellsEl.appendChild(makeCard(i)));
       else spellsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
 
@@ -617,8 +606,43 @@
           card.className = 'inv-card';
           card.innerHTML = `
             <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
-            <div class="inv-info"><span>${it.name}</span><span class="inv-q">x${it.quantity}</span></div>
+            <div class="inv-info"><span>${it.name}</span><span class="inv-q" data-q="${it.quantity}">x${it.quantity}</span></div>
+            <div class="inv-actions"><button class="inv-btn inv-use" type="button">Usa</button></div>
           `;
+          const useBtn = card.querySelector('.inv-use');
+          const qEl    = card.querySelector('.inv-q');
+          useBtn.addEventListener('click', async ()=>{
+            useBtn.disabled = true;
+            try{
+              const r = await fetch(`${API_ORIGIN}/inventory/use`, {
+                method:'POST', credentials:'include',
+                headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify({ item_id: it.item_id, quantity: 1 })
+              });
+              if(r.status === 401){
+                openPopup(LOGIN_URL);
+                await waitForLoginAndClose(15000);
+                useBtn.disabled = false;
+                return;
+              }
+              const j = await r.json();
+              if(!r.ok){ throw new Error(j.error||'use_failed'); }
+              const cur = parseInt(qEl.getAttribute('data-q'), 10) || 0;
+              const nxt = Math.max(0, cur - 1);
+              qEl.setAttribute('data-q', String(nxt));
+              qEl.textContent = 'x' + nxt;
+              if(nxt === 0){
+                card.style.opacity = '.6';
+                card.style.transition = 'opacity .2s ease, transform .2s ease';
+                card.style.transform = 'scale(.98)';
+                setTimeout(()=> card.remove(), 180);
+              }
+            }catch(e){
+              alert('Errore uso: ' + e.message);
+            }finally{
+              useBtn.disabled = false;
+            }
+          });
           grid.appendChild(card);
         });
         invBody.innerHTML = '';
