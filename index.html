@@ -40,25 +40,13 @@
     }
     .hero-actions{ display:flex; align-items:center; gap:10px; }
 
-    /* Legend */
-    .legend{
-      max-width:1600px; margin:10px auto 0; padding:0 24px 8px;
-      display:flex; flex-wrap:wrap; gap:8px;
-    }
-    .legend-chip{
-      display:inline-flex; align-items:center; gap:8px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:10px; padding:6px 10px; font-size:13px; color:#e9e9ff;
-    }
-    .legend-key{ font-weight:800; }
-    .legend-sep{ opacity:.35 }
-
     /* Buttons / pill */
     .btn{
       appearance:none; border:0; cursor:pointer; user-select:none;
       padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
+      transition: transform .15s ease;
     }
+    .btn:active{ transform: translateY(1px) }
     .hero-login{ padding:8px 12px; }
     .user-pill{
       display:flex; align-items:center; gap:8px;
@@ -76,6 +64,32 @@
       box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.35);
     }
     .user-unspent{ font-variant-numeric: tabular-nums; }
+
+    /* Animated earn button */
+    .btn-earn{
+      background: linear-gradient(90deg,#ffe066,#ffbf00,#ffe066);
+      background-size: 200% 100%;
+      color:#1a1200;
+      text-shadow: 0 1px 0 rgba(255,255,255,.4);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,.2) inset,
+        0 6px 14px rgba(255,200,0,.35),
+        0 0 18px rgba(255,220,80,.35);
+      animation: shine 3s linear infinite, pulse 2.4s ease-in-out infinite;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn-earn::after{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(180px 40px at -20% 50%, rgba(255,255,255,.45), transparent 60%);
+      transform: translateX(-120%);
+      animation: sweep 2.6s ease-in-out infinite 0.6s;
+      pointer-events:none;
+    }
+    @keyframes shine{ 0%{background-position:0% 0} 100%{background-position:200% 0} }
+    @keyframes pulse{ 0%,100%{ transform:scale(1)} 50%{ transform:scale(1.04)} }
+    @keyframes sweep{ 0%,60%{ transform: translateX(-120%) } 100%{ transform: translateX(140%) } }
 
     /* Layout */
     .page{ width:100%; max-width:1600px; margin:18px auto; padding:0 24px;
@@ -215,9 +229,9 @@
           <span id="userUnspent" class="user-unspent">0</span>
         </div>
         <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
+        <button id="btnEarn" class="btn btn-earn" type="button" aria-label="Guadagna punti su Twitch">🪙 Guadagna punti</button>
       </div>
     </div>
-	
   </header>
 
   <main class="page">
@@ -259,9 +273,9 @@
       </div>
     </section>
 
-    <!-- Colonna DESTRA -->
+    <!-- Colonna DESTRA: REGOLE + CLASSIFICHE -->
     <section class="column">
-      <!-- REGOLE (spostate sopra la classifica) -->
+      <!-- REGOLE -->
       <div class="card">
         <nav class="tabs" role="tablist" aria-label="Regole della sfida">
           <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
@@ -339,6 +353,7 @@
 
     /* ======= Login popup / pill ======= */
     const btnAuth=document.getElementById('btnAuth');
+    const btnEarn=document.getElementById('btnEarn');
     const mask=document.getElementById('mask');
     const modal=document.getElementById('modal');
     const loginLink=document.getElementById('loginLink');
@@ -358,6 +373,10 @@
       authWin=window.open(url,'authPopup',centerSpecs(640,760));
       if(!authWin||authWin.closed){ showModal(false); location.href=url.replace('?popup=1',''); return; }
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
+    }
+    function openGiftPopup(){
+      const url='https://www.twitch.tv/subs/malgax?gift=true';
+      window.open(url,'giftPopup',centerSpecs(900,800));
     }
 
     const pillEl     = document.getElementById('userPill');
@@ -419,6 +438,7 @@
         },400);
       }
     });
+    btnEarn.addEventListener('click', openGiftPopup);
 
     window.addEventListener('message',(ev)=>{
       if(ev.origin !== API_ORIGIN) return;
