@@ -223,9 +223,7 @@
       <div class="legend-chip"><span>🐉</span><span class="legend-key">Champions</span><span class="legend-sep">—</span><span>Scegli il campione per la prossima partita</span></div>
       <div class="legend-chip"><span>🪄</span><span class="legend-key">Incantesimi</span><span class="legend-sep">—</span><span>Usabili prima dell’inizio</span></div>
       <div class="legend-chip"><span>⚡</span><span class="legend-key">Istantanee</span><span class="legend-sep">—</span><span>Usabili in qualsiasi momento</span></div>
-      <div class="legend-chip"><span> 🚫 </span><span class="legend-key">No udyr</span><span class="legend-sep">—</span><span>Non posso giocarlo MAI</span></div>
-	  <div class="legend-chip"><span> 🟡 </span><span class="legend-key">Guadagna punti</span><span class="legend-sep">—</span><span>Ogni Sub tua o regalata 1 punto </span></div>
-	  
+      <div class="legend-chip"><span>⏱️</span><span class="legend-key">Refresh</span><span class="legend-sep">—</span><span>Classifica aggiornata ogni 60s</span></div>
     </div>
   </header>
 
@@ -272,17 +270,17 @@
     <section class="column">
       <div class="lb-card" id="lbCard">
         <div class="lb-tabs" role="tablist" aria-label="Seleziona classifica">
-          <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="Top Donator" role="tab" aria-selected="true">Top Donator</button>
-          <button class="lb-tab" id="tabUnspent" data-url="/api/leaderboard/unspent" data-title="Punti non spesi" role="tab" aria-selected="false">Punti non spesi</button>
+          <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="🏆 Top Donator" role="tab" aria-selected="true">🏆 Top Donator</button>
+          <button class="lb-tab" id="tabUnspent" data-url="/api/leaderboard/unspent" data-title="🪙 Punti non spesi" role="tab" aria-selected="false">🪙 Punti non spesi</button>
         </div>
         <div class="lb-head">
-          <h3 class="lb-title" id="lbTitle"> 🏆 Top Donator</h3>
+          <h3 class="lb-title" id="lbTitle">🏆 Top Donator</h3>
           <div class="lb-refresh">refresh ogni 60s</div>
         </div>
         <div id="lbPanel" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
       </div>
 
-      <!-- Regole (restano come pannello descrittivo) -->
+      <!-- Regole -->
       <div class="card">
         <nav class="tabs" role="tablist" aria-label="Regole della sfida">
           <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
@@ -714,16 +712,11 @@
     }
 
     function activateLB(tabBtn){
-      // attiva tab
       [tabTop, tabUnspent].forEach(b=>b.classList.remove('is-active'));
       tabBtn.classList.add('is-active');
-
-      // set titolo
       const title = tabBtn.getAttribute('data-title') || '';
       const url   = tabBtn.getAttribute('data-url') || '/api/leaderboard/top';
       lbTitle.textContent = title;
-
-      // fetch e timer
       renderLB(url);
       stopLB();
       lbTimer = setInterval(()=>renderLB(url), 60000);
@@ -731,7 +724,6 @@
 
     tabTop.addEventListener('click', ()=> activateLB(tabTop));
     tabUnspent.addEventListener('click', ()=> activateLB(tabUnspent));
-    // default: Top Donator
     activateLB(tabTop);
   </script>
 </body>
