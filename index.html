@@ -266,8 +266,28 @@
       </div>
     </section>
 
-    <!-- Colonna DESTRA: CLASSIFICHE A TAB -->
+    <!-- Colonna DESTRA -->
     <section class="column">
+      <!-- REGOLE (spostate sopra la classifica) -->
+      <div class="card">
+        <nav class="tabs" role="tablist" aria-label="Regole della sfida">
+          <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
+        </nav>
+        <div id="regole" class="panel" role="tabpanel" aria-labelledby="tab-regole">
+          <ul class="muted" style="margin:0; padding-left:16px">
+            <li>🪙 <strong>Punti:</strong> Guadagna punti con ogni sub (anche regalata) che effettui sul canale.</li>
+            <li>💸 <strong>Spendi:</strong> per creare combo incredibili.</li>
+            <li>❌ <strong>No Udyr</strong></li>
+            <li>🧭 <strong>Unranked → Master</strong></li>
+            <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
+            <li>🐉 <strong>Champions</strong>: scegliete il <u>campione</u> che giocherò nella <u>prossima partita</u>.</li>
+            <li>🪄 <strong>Incantesimi</strong>: utilizzabili <u>prima</u> dell’inizio della partita.</li>
+            <li>⚡ <strong>Istantanee</strong>: utilizzabili <u>in qualsiasi momento</u> della partita.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CLASSIFICHE A TAB -->
       <div class="lb-card" id="lbCard">
         <div class="lb-tabs" role="tablist" aria-label="Seleziona classifica">
           <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="🏆 Top Donator" role="tab" aria-selected="true">🏆 Top Donator</button>
@@ -278,23 +298,6 @@
           <div class="lb-refresh">refresh ogni 60s</div>
         </div>
         <div id="lbPanel" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
-      </div>
-
-      <!-- Regole -->
-      <div class="card">
-        <nav class="tabs" role="tablist" aria-label="Regole della sfida">
-          <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
-        </nav>
-        <div id="regole" class="panel" role="tabpanel" aria-labelledby="tab-regole">
-          <ul class="muted" style="margin:0; padding-left:16px">
-            <li>❌ <strong>No Udyr</strong></li>
-            <li>🧭 <strong>Unranked → Master</strong></li>
-            <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
-            <li>🐉 <strong>Champions</strong>: scegliete il <u>campione</u> che giocherò nella <u>prossima partita</u>.</li>
-            <li>🪄 <strong>Incantesimi</strong>: utilizzabili <u>prima</u> dell’inizio della partita.</li>
-            <li>⚡ <strong>Istantanee</strong>: utilizzabili <u>in qualsiasi momento</u> della partita.</li>
-          </ul>
-        </div>
       </div>
     </section>
   </main>
