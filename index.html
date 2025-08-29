@@ -19,48 +19,18 @@
       color:var(--text);
       overflow-x:hidden;
     }
-    .hero{
-      width:100%;
-      background:
-        radial-gradient(800px 300px at 50% 0%, rgba(100,65,165,.25), rgba(0,0,0,0) 70%),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.0));
-      border-bottom:1px solid rgba(255,255,255,.08);
-      padding:26px 24px 18px;
-    }
-    .hero-inner{
-      max-width:1600px; margin:0 auto; padding:0 24px;
-      display:flex; align-items:center; justify-content:space-between; gap:16px;
-    }
-    .hero-title{
-      margin:0; font-size: clamp(22px, 3vw, 34px); letter-spacing:.3px; font-weight:800;
-      display:flex; align-items:center; gap:10px;
-      text-shadow: 0 2px 20px rgba(100,65,165,.35);
-    }
-    .btn{
-      appearance:none; border:0; cursor:pointer; user-select:none;
-      padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
-    }
+    .hero{ width:100%; background: radial-gradient(800px 300px at 50% 0%, rgba(100,65,165,.25), rgba(0,0,0,0) 70%), linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.0)); border-bottom:1px solid rgba(255,255,255,.08); padding:26px 24px 18px; }
+    .hero-inner{ max-width:1600px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .hero-title{ margin:0; font-size: clamp(22px, 3vw, 34px); letter-spacing:.3px; font-weight:800; display:flex; align-items:center; gap:10px; text-shadow: 0 2px 20px rgba(100,65,165,.35); }
+    .btn{ appearance:none; border:0; cursor:pointer; user-select:none; padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff; }
     .hero-login{ padding:8px 12px; }
     .hero-actions{ display:flex; align-items:center; gap:10px; }
-    .user-pill{
-      display:flex; align-items:center; gap:8px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      padding:6px 10px; border-radius:999px;
-      font-weight:700; color:#e9e9ff;
-    }
+    .user-pill{ display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:999px; font-weight:700; color:#e9e9ff; }
     .user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .coin-icon{
-      width:14px; height:14px; border-radius:50%;
-      display:inline-block;
-      background:
-        radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.35);
-    }
+    .coin-icon{ width:14px; height:14px; border-radius:50%; display:inline-block; background: radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.35); }
     .user-unspent{ font-variant-numeric: tabular-nums; }
 
-    .page{ width:100%; max-width:1600px; margin:18px auto; padding:0 24px;
-      display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start; }
+    .page{ width:100%; max-width:1600px; margin:18px auto; padding:0 24px; display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start; }
     @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
     .column{ display:flex; flex-direction:column; gap:16px }
 
@@ -69,9 +39,7 @@
     .muted{ color:var(--muted); font-size:14px; line-height:1.55 }
     .title{ font-size:20px; margin:0 }
 
-    /* contenitore sinistra (shop) */
-    .left-card{ background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35) }
+    .left-card{ background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35) }
 
     .cat{ margin-bottom:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px }
     .cat-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px }
@@ -79,72 +47,34 @@
     .cat-emoji{ font-size:18px } .cat-line{ height:1px; background:var(--line); flex:1; border-radius:1px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
 
     .tabs{ display:flex; gap:10px; padding:10px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.06); }
-    .tab{ padding:8px 12px; border-radius:10px; font-weight:700; font-size:14px;
-      background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10);
-      cursor:pointer; }
-    .tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55);
-      box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
+    .tab{ padding:8px 12px; border-radius:10px; font-weight:700; font-size:14px; background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10); cursor:pointer; }
+    .tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55); box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
 
     .cards-row{ display:grid; gap: var(--gap); grid-template-columns: repeat(var(--cols-desktop), 1fr); }
     @media (max-width:980px){ .cards-row{ grid-template-columns: repeat(var(--cols-tablet), 1fr) } }
     @media (max-width:620px){ .cards-row{ grid-template-columns: repeat(var(--cols-mobile), 1fr) } }
-    .card-item{
-      position:relative; aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); background:#0c0c12;
-      border:1px solid rgba(255,255,255,.12); border-radius:12px; overflow:hidden;
-      display:flex; align-items:center; justify-content:center; padding:0; min-height: 180px;
-      transition: transform .2s ease;
-    }
+    .card-item{ position:relative; aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); background:#0c0c12; border:1px solid rgba(255,255,255,.12); border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0; min-height: 180px; transition: transform .2s ease; }
     .card-item:hover{ transform: translateY(-2px) }
     .card-item img{ width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto; }
 
-    /* login modal */
     .modal-mask{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998}
     .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999}
     .modal .box{ width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center }
     .modal .hint{ color:#a4a4b5; font-size:13px; margin-top:8px }
 
-    /* viewer fullscreen */
-    .viewer-mask{ position:fixed; inset:0; background:rgba(0,0,0,.85);
-      display:none; align-items:center; justify-content:center; z-index: 10000; backdrop-filter: blur(2px); }
+    .viewer-mask{ position:fixed; inset:0; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; z-index: 10000; backdrop-filter: blur(2px); }
     .viewer{ width: clamp(220px, 30.666vw, 300px); aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); perspective: 1400px; position:relative; touch-action: none; }
-    .viewer-inner{
-      position:absolute; inset:0; border-radius:16px; overflow:hidden; background:#0b0b10;
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
-      transform-style: preserve-3d; will-change: transform; transition: transform .18s ease, box-shadow .2s ease;
-    }
+    .viewer-inner{ position:absolute; inset:0; border-radius:16px; overflow:hidden; background:#0b0b10; border:1px solid rgba(255,255,255,.08); box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset; transform-style: preserve-3d; will-change: transform; transition: transform .18s ease, box-shadow .2s ease; }
     .viewer-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; transform: translateZ(20px); }
-    .viewer-shine{
-      position:absolute; inset:-30%;
-      background: radial-gradient(800px 500px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,.22), rgba(255,255,255,0) 60%);
-      mix-blend-mode: screen; pointer-events:none; transform: translateZ(40px); opacity:.65;
-    }
+    .viewer-shine{ position:absolute; inset:-30%; background: radial-gradient(800px 500px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,.22), rgba(255,255,255,0) 60%); mix-blend-mode: screen; pointer-events:none; transform: translateZ(40px); opacity:.65; }
     .viewer-actions{ position:absolute; top:-46px; right:0; display:flex; gap:8px; }
-    .viewer-btn{
-      background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff;
-      padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.4);
-    }
+    .viewer-btn{ background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.4); }
 
-    /* inventario */
-    .inv-toggle{
-      position:fixed; right:0; top:50%; transform:translateY(-50%);
-      writing-mode:vertical-rl; text-orientation:mixed;
-      background:#6441a5; color:#fff; border:0; border-radius:10px 0 0 10px;
-      padding:12px 10px; font-weight:800; letter-spacing:.5px; cursor:pointer;
-      box-shadow:0 6px 18px rgba(0,0,0,.35); z-index:11000;
-    }
+    .inv-toggle{ position:fixed; right:0; top:50%; transform:translateY(-50%); writing-mode:vertical-rl; text-orientation:mixed; background:#6441a5; color:#fff; border:0; border-radius:10px 0 0 10px; padding:12px 10px; font-weight:800; letter-spacing:.5px; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.35); z-index:11000; }
     .inv-mask{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; z-index:10990; }
-    .inv-drawer{
-      position:fixed; right:-420px; top:0; height:100vh; width:380px; max-width:88vw;
-      background:#11131a; border-left:1px solid rgba(255,255,255,.12);
-      box-shadow:-12px 0 28px rgba(0,0,0,.45);
-      z-index:11010; display:flex; flex-direction:column; transition:right .25s ease;
-    }
+    .inv-drawer{ position:fixed; right:-420px; top:0; height:100vh; width:380px; max-width:88vw; background:#11131a; border-left:1px solid rgba(255,255,255,.12); box-shadow:-12px 0 28px rgba(0,0,0,.45); z-index:11010; display:flex; flex-direction:column; transition:right .25s ease; }
     .inv-drawer.open{ right:0; }
-    .inv-head{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.08);
-    }
+    .inv-head{ display:flex; align-items:center; justify-content:space-between; padding:14px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.08); }
     .inv-title{ margin:0; font-size:16px; }
     .inv-close{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; cursor:pointer; }
     .inv-body{ padding:12px; overflow:auto; }
@@ -155,21 +85,11 @@
     .inv-info{ padding:8px 10px; font-size:13px; color:#dcdcf0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .inv-q{ color:#a4a4b5; font-variant-numeric:tabular-nums; }
     .inv-actions{ display:flex; gap:8px; padding:8px 10px 12px; border-top:1px solid rgba(255,255,255,.06); }
-    .inv-btn{
-      background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff;
-      padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700;
-    }
+    .inv-btn{ background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
     .inv-btn[disabled]{ opacity:.6; cursor:not-allowed; }
     .inv-empty{ color:#a4a4b5; text-align:center; padding:16px 8px; }
 
-    /* CLASSIFICHE INLINE (due contenitori arrotondati) */
-    .lb-card{
-      background:var(--card);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:24px; /* più arrotondato */
-      overflow:hidden;
-      box-shadow:0 10px 28px rgba(0,0,0,.35);
-    }
+    .lb-card{ background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:24px; overflow:hidden; box-shadow:0 10px 28px rgba(0,0,0,.35); }
     .lb-head{ padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; }
     .lb-panel{ padding:12px 16px 16px; }
     .lb-table{ width:100%; border-collapse:collapse; }
@@ -197,83 +117,45 @@
   </header>
 
   <main class="page">
-    <!-- Colonna SINISTRA: SHOP CARTE -->
     <section class="left-card" aria-labelledby="left-title">
       <h2 id="left-title" class="title" style="margin:0 0 8px">Preview carte</h2>
 
       <div class="cat" id="cat-creature">
-        <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">🐉</span> Creature</h3>
-          <div class="cat-line"></div>
-        </div>
-
+        <div class="cat-head"><h3 class="cat-title"><span class="cat-emoji">🐉</span> Creature</h3><div class="cat-line"></div></div>
         <nav class="tabs" role="tablist" aria-label="Creature per costo" style="margin:4px 0 10px;">
           <button class="tab is-active" role="tab" aria-selected="true" aria-controls="crea-2" data-target="crea-2">Costo 2</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-3" data-target="crea-3">Costo 3</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
         </nav>
-
         <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2"></div>
         <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none"></div>
         <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none"></div>
       </div>
 
       <div class="cat" id="cat-spell">
-        <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">🪄</span> Incantesimi</h3>
-          <div class="cat-line"></div>
-        </div>
+        <div class="cat-head"><h3 class="cat-title"><span class="cat-emoji">🪄</span> Incantesimi</h3><div class="cat-line"></div></div>
         <div class="cards-row" id="spellsRow"></div>
       </div>
 
       <div class="cat" id="cat-instant" style="margin-bottom:0;">
-        <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">⚡</span> Istantanee</h3>
-          <div class="cat-line"></div>
-        </div>
+        <div class="cat-head"><h3 class="cat-title"><span class="cat-emoji">⚡</span> Istantanee</h3><div class="cat-line"></div></div>
         <div class="cards-row" id="instantsRow"></div>
       </div>
     </section>
 
-    <!-- Colonna DESTRA: DUE CLASSIFICHE INLINE (senza titoli testuali) -->
     <section class="column">
       <div class="lb-card">
-        <div class="lb-head">
-          <!-- Intestazione volutamente senza testo “Top Donator” -->
-          <span aria-hidden="true"></span>
-          <small class="muted">refresh ogni 60s</small>
-        </div>
+        <div class="lb-head"><span aria-hidden="true"></span><small class="muted">refresh ogni 60s</small></div>
         <div id="lbPanelTop" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
       </div>
 
       <div class="lb-card">
-        <div class="lb-head">
-          <!-- Intestazione volutamente senza testo “Punti non spesi” -->
-          <span aria-hidden="true"></span>
-          <small class="muted">refresh ogni 60s</small>
-        </div>
+        <div class="lb-head"><span aria-hidden="true"></span><small class="muted">refresh ogni 60s</small></div>
         <div id="lbPanelUnspent" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
-      </div>
-
-      <div class="card">
-        <nav class="tabs" role="tablist" aria-label="Regole della sfida">
-          <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
-        </nav>
-        <div id="regole" class="panel" role="tabpanel" aria-labelledby="tab-regole">
-          <ul class="muted" style="margin:0; padding-left:16px">
-            <li>❌ <strong>No Udyr</strong></li>
-            <li>🧭 <strong>Unranked → Master</strong></li>
-            <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
-            <li>🐉 <strong>Carte “Creature”:</strong> scegliete il <u>campione</u> che giocherò nella <u>prossima partita</u>.</li>
-            <li>🪄 <strong>“Incantesimi”:</strong> possono essere usati <u>prima</u> dell’inizio della partita.</li>
-            <li>⚡ <strong>“Istantanee”:</strong> possono essere usate <u>in qualsiasi momento</u> della partita.</li>
-          </ul>
-        </div>
       </div>
     </section>
   </main>
 
-  <!-- Overlay login -->
   <div id="mask" class="modal-mask"></div>
   <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
     <div class="box">
@@ -283,7 +165,6 @@
     </div>
   </div>
 
-  <!-- Viewer fullscreen -->
   <div id="viewerMask" class="viewer-mask" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="viewer" id="viewer">
       <div class="viewer-inner" id="viewerInner">
@@ -297,17 +178,11 @@
     </div>
   </div>
 
-  <!-- Inventario -->
   <button id="invToggle" class="inv-toggle" type="button">Inventario</button>
   <div id="invMask" class="inv-mask"></div>
   <aside id="invDrawer" class="inv-drawer" aria-hidden="true" aria-label="Inventario">
-    <div class="inv-head">
-      <h3 class="inv-title">🎒 Inventario</h3>
-      <button id="invClose" class="inv-close" type="button">Chiudi</button>
-    </div>
-    <div id="invBody" class="inv-body">
-      <div class="inv-empty">Caricamento…</div>
-    </div>
+    <div class="inv-head"><h3 class="inv-title">🎒 Inventario</h3><button id="invClose" class="inv-close" type="button">Chiudi</button></div>
+    <div id="invBody" class="inv-body"><div class="inv-empty">Caricamento…</div></div>
   </aside>
 
   <script>
@@ -337,9 +212,9 @@
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
     }
 
-    const pillEl     = document.getElementById('userPill');
-    const pillNameEl = document.getElementById('userName');
-    const pillPtsEl  = document.getElementById('userUnspent');
+    const pillEl=document.getElementById('userPill');
+    const pillNameEl=document.getElementById('userName');
+    const pillPtsEl=document.getElementById('userUnspent');
 
     function renderPill(me){
       if(!me){ pillEl.style.display='none'; return; }
@@ -382,11 +257,8 @@
 
     btnAuth.addEventListener('click',(e)=>{
       e.preventDefault();
-      if(!loggedIn){
-        loginLink.href=LOGIN_URL;
-        openPopup(LOGIN_URL);
-        waitForLoginAndClose();
-      }else{
+      if(!loggedIn){ loginLink.href=LOGIN_URL; openPopup(LOGIN_URL); waitForLoginAndClose(); }
+      else{
         openPopup(LOGOUT_URL);
         const start=Date.now();
         const wait=setInterval(()=>{
@@ -403,303 +275,202 @@
       if(ev.origin !== API_ORIGIN) return;
       const d=ev.data||{};
       if(d.type==='me'){ renderPill(d.me); }
-      if(d.type==='login'){
-        loggedIn=true; setUI();
-        try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){}
-        showModal(false);
-        updateUserPill();
-      }
-      if(d.type==='logout'){
-        loggedIn=false; setUI(); pillEl.style.display='none';
-        try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){}
-        showModal(false);
-      }
+      if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); updateUserPill(); }
+      if(d.type==='logout'){ loggedIn=false; setUI(); pillEl.style.display='none'; try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
     });
 
     updateUserPill();
 
-    // ===== Tabs creature (shop) =====
     (function(){
-      const root  = document.getElementById('cat-creature');
+      const root=document.getElementById('cat-creature');
       if(!root) return;
-      const tabs  = root.querySelectorAll('.tabs .tab');
-      const panes = root.querySelectorAll('[role="tabpanel"]');
+      const tabs=root.querySelectorAll('.tabs .tab');
+      const panes=root.querySelectorAll('[role="tabpanel"]');
       tabs.forEach(btn=>{
         btn.addEventListener('click', ()=>{
           tabs.forEach(b=>b.classList.remove('is-active'));
           btn.classList.add('is-active');
           panes.forEach(p=>p.style.display='none');
-          const id = btn.dataset.target;
-          const pane = root.querySelector('#'+id);
-          if(pane) pane.style.display = '';
+          const id=btn.dataset.target;
+          const pane=root.querySelector('#'+id);
+          if(pane) pane.style.display='';
         });
       });
     })();
 
-    // ===== Viewer fullscreen =====
-    const viewerMask = document.getElementById('viewerMask');
-    const viewer = document.getElementById('viewer');
-    const viewerInner = document.getElementById('viewerInner');
-    const viewerImg = document.getElementById('viewerImg');
-    const viewerShine = document.getElementById('viewerShine');
-    const btnBuy = document.getElementById('viewerBuy');
-    const btnClose = document.getElementById('viewerClose');
+    const viewerMask=document.getElementById('viewerMask');
+    const viewer=document.getElementById('viewer');
+    const viewerInner=document.getElementById('viewerInner');
+    const viewerImg=document.getElementById('viewerImg');
+    const viewerShine=document.getElementById('viewerShine');
+    const btnBuy=document.getElementById('viewerBuy');
+    const btnClose=document.getElementById('viewerClose');
 
-    let idle = false, idleRAF = 0, idleStart = 0;
-    let CURRENT_ITEM = null;
-
+    let idle=false, idleRAF=0, idleStart=0, CURRENT_ITEM=null;
     function startIdleTilt(){
-      idle = true;
-      idleStart = performance.now();
+      idle=true; idleStart=performance.now();
       function loop(t){
         if(!idle) return;
-        const k = (t - idleStart) / 1000;
-        const rx = Math.sin(k*1.3) * 6;
-        const ry = Math.cos(k*1.1) * 6;
-        viewerInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
+        const k=(t-idleStart)/1000; const rx=Math.sin(k*1.3)*6; const ry=Math.cos(k*1.1)*6;
+        viewerInner.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
         viewerShine.style.setProperty('--sx', `${(Math.cos(k*1.2)*0.25+0.5)*100}%`);
         viewerShine.style.setProperty('--sy', `${(Math.sin(k*1.2)*0.25+0.5)*100}%`);
-        idleRAF = requestAnimationFrame(loop);
-      }
-      idleRAF = requestAnimationFrame(loop);
+        idleRAF=requestAnimationFrame(loop);
+      } idleRAF=requestAnimationFrame(loop);
     }
-    function stopIdleTilt(){ idle = false; if(idleRAF) cancelAnimationFrame(idleRAF); idleRAF = 0; }
-
+    function stopIdleTilt(){ idle=false; if(idleRAF) cancelAnimationFrame(idleRAF); idleRAF=0; }
     function openViewerForItem(item){
-      CURRENT_ITEM = item || null;
-      viewerImg.src = item?.image_url || '';
-      viewerImg.alt = item?.name || '';
-      viewerMask.style.display = 'flex'; viewerMask.setAttribute('aria-hidden','false');
-      document.documentElement.style.overflow = 'hidden';
-      startIdleTilt();
+      CURRENT_ITEM=item||null; viewerImg.src=item?.image_url||''; viewerImg.alt=item?.name||'';
+      viewerMask.style.display='flex'; viewerMask.setAttribute('aria-hidden','false'); document.documentElement.style.overflow='hidden'; startIdleTilt();
     }
-    function closeViewer(){
-      viewerMask.style.display = 'none'; viewerMask.setAttribute('aria-hidden','true');
-      document.documentElement.style.overflow = ''; stopIdleTilt();
-      viewerInner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1.0)';
-      CURRENT_ITEM = null;
-    }
+    function closeViewer(){ viewerMask.style.display='none'; viewerMask.setAttribute('aria-hidden','true'); document.documentElement.style.overflow=''; stopIdleTilt(); viewerInner.style.transform='rotateX(0deg) rotateY(0deg) scale(1.0)'; CURRENT_ITEM=null; }
 
-    viewerMask.addEventListener('click', (e)=>{ if(e.target === viewerMask) closeViewer(); });
+    viewerMask.addEventListener('click', (e)=>{ if(e.target===viewerMask) closeViewer(); });
     btnClose.addEventListener('click', closeViewer);
-    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeViewer(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeViewer(); });
 
-    // ===== SHOP data-driven =====
-    const crea2El = document.getElementById('crea-2');
-    const crea3El = document.getElementById('crea-3');
-    const crea5El = document.getElementById('crea-5');
-    const spellsEl = document.getElementById('spellsRow');
-    const instantsEl = document.getElementById('instantsRow');
+    const crea2El=document.getElementById('crea-2');
+    const crea3El=document.getElementById('crea-3');
+    const crea5El=document.getElementById('crea-5');
+    const spellsEl=document.getElementById('spellsRow');
+    const instantsEl=document.getElementById('instantsRow');
 
     function makeCard(item){
-      const fig = document.createElement('figure');
-      fig.className = 'card-item';
-      fig.dataset.itemId = item.id;
-      fig.dataset.itemName = item.name;
-      fig.dataset.itemCost = item.cost_points;
-
-      const img = document.createElement('img');
-      img.src = item.image_url;
-      img.alt = item.name;
-      fig.appendChild(img);
-
-      fig.addEventListener('click', (e)=>{
-        e.preventDefault();
-        openViewerForItem(item);
-      });
-
+      const fig=document.createElement('figure');
+      fig.className='card-item';
+      fig.dataset.itemId=item.id;
+      fig.dataset.itemName=item.name;
+      fig.dataset.itemCost=item.cost_points;
+      const img=document.createElement('img'); img.src=item.image_url; img.alt=item.name; fig.appendChild(img);
+      fig.addEventListener('click',(e)=>{ e.preventDefault(); openViewerForItem(item); });
       return fig;
     }
 
     async function loadAndRenderItems(){
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
         if(!el) return;
-        el.innerHTML = '';
-        for(let i=0;i<10;i++){
-          const ph = document.createElement('div');
-          ph.className = 'card-item';
-          ph.style.background = '#0c0c12 linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0))';
-          el.appendChild(ph);
-        }
+        el.innerHTML=''; for(let i=0;i<10;i++){ const ph=document.createElement('div'); ph.className='card-item'; ph.style.background='#0c0c12 linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0))'; el.appendChild(ph); }
       });
 
       let items=[];
-      try{
-        const r = await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' });
-        if(r.ok) items = await r.json();
-      }catch(_){}
-
+      try{ const r=await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' }); if(r.ok) items=await r.json(); }catch(_){}
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
 
-      const creatures = items.filter(i=>i.kind==='creature');
-      const spells    = items.filter(i=>i.kind==='spell');
-      const instants  = items.filter(i=>i.kind==='instant');
+      const creatures=items.filter(i=>i.kind==='creature');
+      const spells=items.filter(i=>i.kind==='spell');
+      const instants=items.filter(i=>i.kind==='instant');
 
-      const c2 = creatures.filter(i=>Number(i.cost_points)===2);
-      const c3 = creatures.filter(i=>Number(i.cost_points)===3);
-      const c5 = creatures.filter(i=>Number(i.cost_points)===5);
+      const c2=creatures.filter(i=>Number(i.cost_points)===2);
+      const c3=creatures.filter(i=>Number(i.cost_points)===3);
+      const c5=creatures.filter(i=>Number(i.cost_points)===5);
 
       c2.forEach(i=>crea2El.appendChild(makeCard(i)));
       c3.forEach(i=>crea3El.appendChild(makeCard(i)));
       c5.forEach(i=>crea5El.appendChild(makeCard(i)));
 
-      if(!c2.length) crea2El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
-      if(!c3.length) crea3El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
-      if(!c5.length) crea5El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
+      if(!c2.length) crea2El.innerHTML='<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
+      if(!c3.length) crea3El.innerHTML='<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
+      if(!c5.length) crea5El.innerHTML='<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
 
       if(spells.length) spells.forEach(i=>spellsEl.appendChild(makeCard(i)));
-      else spellsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
+      else spellsEl.innerHTML='<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
 
       if(instants.length) instants.forEach(i=>instantsEl.appendChild(makeCard(i)));
-      else instantsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna istantanea</div>';
+      else instantsEl.innerHTML='<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna istantanea</div>';
     }
     loadAndRenderItems();
 
-    // ==== Compra (usa CURRENT_ITEM.id) ====
     document.getElementById('viewerBuy').addEventListener('click', async ()=>{
       if(!CURRENT_ITEM){ alert('Seleziona una carta.'); return; }
       try{
-        const r = await fetch(`${API_ORIGIN}/shop/purchase`, {
+        const r=await fetch(`${API_ORIGIN}/shop/purchase`,{
           method:'POST', credentials:'include',
           headers:{ 'Content-Type':'application/json' },
           body: JSON.stringify({ item_id: CURRENT_ITEM.id, quantity: 1 })
         });
-        if(r.status === 401){
-          openPopup(LOGIN_URL);
-          await waitForLoginAndClose(15000);
-          return;
-        }
-        const j = await r.json();
-        if(!r.ok){ throw new Error(j.error||'purchase_failed'); }
-        alert(`Acquisto riuscito: ${CURRENT_ITEM.name} (-${CURRENT_ITEM.cost_points} punti)`);
-        updateUserPill();
-      }catch(e){ alert('Errore acquisto: ' + e.message); }
+        if(r.status===401){ openPopup(LOGIN_URL); await waitForLoginAndClose(15000); return; }
+        const j=await r.json(); if(!r.ok) throw new Error(j.error||'purchase_failed');
+        alert(`Acquisto riuscito: ${CURRENT_ITEM.name} (-${CURRENT_ITEM.cost_points} punti)`); updateUserPill();
+      }catch(e){ alert('Errore acquisto: '+e.message); }
     });
-    document.getElementById('viewerClose').addEventListener('click', ()=> {
-      document.querySelector('.viewer-mask').style.display='none';
-      document.documentElement.style.overflow='';
-    });
+    document.getElementById('viewerClose').addEventListener('click', ()=> { document.querySelector('.viewer-mask').style.display='none'; document.documentElement.style.overflow=''; });
 
-    // ===== INVENTARIO =====
-    const invToggle = document.getElementById('invToggle');
-    const invMask   = document.getElementById('invMask');
-    const invDrawer = document.getElementById('invDrawer');
-    const invBody   = document.getElementById('invBody');
-    const invClose  = document.getElementById('invClose');
+    // ===== INVENTARIO (client-side filter > 0) =====
+    const invToggle=document.getElementById('invToggle');
+    const invMask=document.getElementById('invMask');
+    const invDrawer=document.getElementById('invDrawer');
+    const invBody=document.getElementById('invBody');
+    const invClose=document.getElementById('invClose');
 
     async function loadInventory(){
-      invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
+      invBody.innerHTML='<div class="inv-empty">Caricamento…</div>';
       try{
-        const res = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
-        if(res.status === 401){
-          invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
-          const b = document.getElementById('invLoginBtn');
-          if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
+        const res=await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
+        if(res.status===401){
+          invBody.innerHTML='<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
+          const b=document.getElementById('invLoginBtn'); if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
           return;
         }
-        const data = await res.json();
-        if(!Array.isArray(data) || data.length === 0){
-          invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
-          return;
-        }
-        const grid = document.createElement('div');
-        grid.className = 'inv-grid';
+        let data=await res.json();
+        data = Array.isArray(data) ? data.filter(it => Number(it.quantity) > 0) : [];
+        if(!data.length){ invBody.innerHTML='<div class="inv-empty">Inventario vuoto.</div>'; return; }
+
+        const grid=document.createElement('div'); grid.className='inv-grid';
         data.forEach(it=>{
-          const card = document.createElement('div');
-          card.className = 'inv-card';
-          card.innerHTML = `
+          const card=document.createElement('div'); card.className='inv-card';
+          card.innerHTML=`
             <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
             <div class="inv-info"><span>${it.name}</span><span class="inv-q" data-q="${it.quantity}">x${it.quantity}</span></div>
-            <div class="inv-actions"><button class="inv-btn inv-use" type="button">Usa</button></div>
-          `;
-          const useBtn = card.querySelector('.inv-use');
-          const qEl    = card.querySelector('.inv-q');
+            <div class="inv-actions"><button class="inv-btn inv-use" type="button">Usa</button></div>`;
+          const useBtn=card.querySelector('.inv-use');
+          const qEl=card.querySelector('.inv-q');
           useBtn.addEventListener('click', async ()=>{
-            useBtn.disabled = true;
+            useBtn.disabled=true;
             try{
-              const r = await fetch(`${API_ORIGIN}/inventory/use`, {
-                method:'POST', credentials:'include',
-                headers:{ 'Content-Type':'application/json' },
+              const r=await fetch(`${API_ORIGIN}/inventory/use`,{
+                method:'POST', credentials:'include', headers:{ 'Content-Type':'application/json' },
                 body: JSON.stringify({ item_id: it.item_id, quantity: 1 })
               });
-              if(r.status === 401){
-                openPopup(LOGIN_URL);
-                await waitForLoginAndClose(15000);
-                useBtn.disabled = false;
-                return;
-              }
-              const j = await r.json();
-              if(!r.ok){ throw new Error(j.error||'use_failed'); }
-              const cur = parseInt(qEl.getAttribute('data-q'), 10) || 0;
-              const nxt = Math.max(0, cur - 1);
-              qEl.setAttribute('data-q', String(nxt));
-              qEl.textContent = 'x' + nxt;
-              if(nxt === 0){
-                card.style.opacity = '.6';
-                card.style.transition = 'opacity .2s ease, transform .2s ease';
-                card.style.transform = 'scale(.98)';
-                setTimeout(()=> card.remove(), 180);
-              }
-            }catch(e){
-              alert('Errore uso: ' + e.message);
-            }finally{
-              useBtn.disabled = false;
-            }
+              if(r.status===401){ openPopup(LOGIN_URL); await waitForLoginAndClose(15000); useBtn.disabled=false; return; }
+              const j=await r.json(); if(!r.ok) throw new Error(j.error||'use_failed');
+              const cur=parseInt(qEl.getAttribute('data-q'),10)||0; const nxt=Math.max(0, cur-1);
+              qEl.setAttribute('data-q', String(nxt)); qEl.textContent='x'+nxt;
+              if(nxt===0){ card.style.opacity='.6'; card.style.transition='opacity .2s ease, transform .2s ease'; card.style.transform='scale(.98)'; setTimeout(()=> card.remove(),180); }
+            }catch(e){ alert('Errore uso: '+e.message); } finally { useBtn.disabled=false; }
           });
           grid.appendChild(card);
         });
-        invBody.innerHTML = '';
-        invBody.appendChild(grid);
+        invBody.innerHTML=''; invBody.appendChild(grid);
       }catch(e){
-        invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
+        invBody.innerHTML='<div class="inv-empty">Errore nel caricamento.</div>';
       }
     }
-    function openInventory(){ invMask.style.display = 'block'; invDrawer.classList.add('open'); invDrawer.setAttribute('aria-hidden','false'); loadInventory(); }
-    function closeInventory(){ invMask.style.display = 'none'; invDrawer.classList.remove('open'); invDrawer.setAttribute('aria-hidden','true'); }
+    function openInventory(){ invMask.style.display='block'; invDrawer.classList.add('open'); invDrawer.setAttribute('aria-hidden','false'); loadInventory(); }
+    function closeInventory(){ invMask.style.display='none'; invDrawer.classList.remove('open'); invDrawer.setAttribute('aria-hidden','true'); }
     invToggle.addEventListener('click', openInventory);
-    invClose .addEventListener('click', closeInventory);
-    invMask  .addEventListener('click', closeInventory);
+    invClose.addEventListener('click', closeInventory);
+    invMask.addEventListener('click', closeInventory);
 
-    // ===== CLASSIFICHE INLINE (auto-refresh 60s) =====
-    const lbTop = document.getElementById('lbPanelTop');
-    const lbUn  = document.getElementById('lbPanelUnspent');
+    // ===== CLASSIFICHE =====
+    const lbTop=document.getElementById('lbPanelTop');
+    const lbUn=document.getElementById('lbPanelUnspent');
     let t1=0, t2=0;
-
     async function renderLB(panel, url){
-      panel.innerHTML = '<div class="lb-empty">Caricamento…</div>';
+      panel.innerHTML='<div class="lb-empty">Caricamento…</div>';
       try{
-        const res = await fetch(url, { cache:'no-store' });
+        const res=await fetch(url,{ cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        if(!Array.isArray(data) || data.length===0){
-          panel.innerHTML = '<div class="lb-empty">Nessun dato.</div>';
-          return;
-        }
-        const rows = data.map((r,i)=>`
-          <tr>
-            <td class="lb-rank">${String(i+1).padStart(2,'0')}</td>
-            <td class="lb-user">${(r.username||'Utente')}</td>
-            <td class="lb-pts">${Number(r.points||0)}</td>
-          </tr>`).join('');
-        panel.innerHTML = `
-          <table class="lb-table" aria-label="classifica">
-            <thead><tr><th>#</th><th>Utente</th><th style="text-align:right">Punti</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>`;
-      }catch(e){
-        panel.innerHTML = '<div class="lb-err">Errore nel caricamento.</div>';
-      }
+        const data=await res.json();
+        if(!Array.isArray(data)||data.length===0){ panel.innerHTML='<div class="lb-empty">Nessun dato.</div>'; return; }
+        const rows=data.map((r,i)=>`
+          <tr><td class="lb-rank">${String(i+1).padStart(2,'0')}</td><td class="lb-user">${(r.username||'Utente')}</td><td class="lb-pts">${Number(r.points||0)}</td></tr>`
+        ).join('');
+        panel.innerHTML=`<table class="lb-table" aria-label="classifica"><thead><tr><th>#</th><th>Utente</th><th style="text-align:right">Punti</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }catch(_){ panel.innerHTML='<div class="lb-err">Errore nel caricamento.</div>'; }
     }
-    function startLB(){
-      stopLB();
-      renderLB(lbTop, `${API_ORIGIN}/api/leaderboard/top`);
-      renderLB(lbUn,  `${API_ORIGIN}/api/leaderboard/unspent`);
-      t1 = setInterval(()=>renderLB(lbTop, `${API_ORIGIN}/api/leaderboard/top`), 60000);
-      t2 = setInterval(()=>renderLB(lbUn,  `${API_ORIGIN}/api/leaderboard/unspent`), 60000);
-    }
+    function startLB(){ stopLB(); renderLB(lbTop, `${API_ORIGIN}/api/leaderboard/top`); renderLB(lbUn, `${API_ORIGIN}/api/leaderboard/unspent`); t1=setInterval(()=>renderLB(lbTop, `${API_ORIGIN}/api/leaderboard/top`),60000); t2=setInterval(()=>renderLB(lbUn, `${API_ORIGIN}/api/leaderboard/unspent`),60000); }
     function stopLB(){ if(t1) clearInterval(t1); if(t2) clearInterval(t2); t1=0; t2=0; }
-    startLB();
-    window.addEventListener('visibilitychange',()=> document.hidden ? stopLB() : startLB());
+    startLB(); window.addEventListener('visibilitychange',()=> document.hidden ? stopLB() : startLB());
   </script>
 </body>
 </html>
