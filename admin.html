@@ -3,48 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Amministrazione — Eventi</title>
+  <title>Amministrazione — Carte usate</title>
   <style>
     :root{
-      --bg:#0f1117; --panel:#151826; --muted:#9397a1; --text:#e7e9ee;
-      --acc:#5b8cff; --grid:#1b2033; --radius:14px;
+      --bg:#0f1117; --panel:#151826; --muted:#9397a1; --text:#e7e9ee; --acc:#5b8cff; --radius:14px;
+      --border:#20263e; --panel2:#0e1324;
     }
     html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,Segoe UI,Roboto,Arial}
-    header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #22263a;background:linear-gradient(180deg,#12172a,transparent)}
+    header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#12172a,transparent)}
     header h1{font-size:18px;margin:0}
     header .badge{font-size:12px;padding:2px 8px;border:1px solid #3a3f57;border-radius:999px;color:var(--muted)}
     main{padding:18px;display:grid;gap:14px}
-    .panel{background:var(--panel);border:1px solid #20263e;border-radius:var(--radius);padding:14px}
-    .filters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+    .filters{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:10px}
     .filters label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
-    input,button{background:#0e1324;color:var(--text);border:1px solid #2a3150;border-radius:10px;padding:8px 10px}
+    input,select,button{background:var(--panel2);color:var(--text);border:1px solid #2a3150;border-radius:10px;padding:8px 10px}
     button{cursor:pointer}
     button[disabled]{opacity:.45;cursor:not-allowed}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+    .tab{padding:8px 12px;border:1px solid var(--border);border-radius:999px;background:#111733;color:#cfd5ff;cursor:pointer}
+    .tab.active{background:#1a2448;border-color:#2a3a7a}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .actions{display:flex;gap:10px}
-    .table{overflow:auto;border-radius:12px;border:1px solid #20263e}
-    table{width:100%;border-collapse:collapse;min-width:900px;background:#0e1324}
+    .table{overflow:auto;border-radius:12px;border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;min-width:1000px;background:var(--panel2)}
     th,td{padding:10px 12px;border-bottom:1px solid #1a1f33;font-size:13px;vertical-align:top}
-    th{position:sticky;top:0;background:#111833;text-align:left}
+    th{position:sticky;top:0;background:#111833;text-align:left;z-index:1}
     tr:hover td{background:#0f1731}
     .muted{color:var(--muted);font-size:12px}
     .pill{display:inline-block;padding:2px 8px;border:1px solid #3a3f57;border-radius:999px;font-size:12px;color:#cfd5ff;background:#141b33}
-    .pagination{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-    .right{margin-left:auto}
-    .json{font-family:ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}
     .status{font-size:12px;color:var(--muted)}
     .ok{color:#9cffbd}
     .warn{color:#ffd27a}
     .err{color:#ff9b9b}
-    details.debug{margin-top:8px}
-    details.debug summary{cursor:pointer;color:#9aa0ff}
-    pre{background:#0e1324;border:1px solid #20263e;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
+    .right{margin-left:auto}
+    .count{font-size:12px;color:#c7cbff}
   </style>
 </head>
 <body>
   <header>
     <h1>Amministrazione</h1>
-    <span class="badge">Eventi</span>
+    <span class="badge">Carte usate</span>
     <div class="right status" id="status">Verifica accesso…</div>
   </header>
 
@@ -52,35 +51,50 @@
     <section class="panel">
       <div id="authbar" class="status">Controllo login…</div>
 
-      <details class="debug">
-        <summary>Debug login (/me)</summary>
-        <div style="margin-top:8px">
-          <button id="btn-me">Ricarica /me</button>
-          <pre id="me-dump">(vuoto)</pre>
-        </div>
-      </details>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-kind="creature">Creature</button>
+        <button class="tab" data-kind="incantesimo">Incantesimo</button>
+        <button class="tab" data-kind="istantanea">Istantanea</button>
+        <span class="count" id="count"></span>
+      </div>
 
-      <div class="filters" style="margin-top:10px">
-        <label>Tipo evento <input id="f-type" disabled></label>
-        <label>Utente <input id="f-user" disabled></label>
-        <label>Dal <input id="f-from" type="datetime-local" disabled></label>
-        <label>Al <input id="f-to" type="datetime-local" disabled></label>
-        <label>Limite <input id="f-limit" type="number" value="50" disabled></label>
-        <label>Endpoint
-          <input id="f-endpoint" placeholder="/events (quando lo crei). Per test: /inventory o /api/leaderboard/top" disabled>
+      <div class="filters">
+        <label>Utente
+          <input id="f-user" placeholder="login utente" disabled>
+        </label>
+        <label>Carta
+          <input id="f-item" placeholder="nome carta" disabled>
+        </label>
+        <label>Stato
+          <select id="f-status" disabled>
+            <option value="all">Tutte</option>
+            <option value="pending">Da fare</option>
+            <option value="done">Fatto</option>
+          </select>
+        </label>
+        <label>Dal
+          <input id="f-from" type="datetime-local" disabled>
+        </label>
+        <label>Al
+          <input id="f-to" type="datetime-local" disabled>
+        </label>
+        <label>Limite
+          <input id="f-limit" type="number" value="100" min="1" max="500" disabled>
+        </label>
+        <label>Endpoint (facoltativo)
+          <input id="f-endpoint" placeholder="/admin/used-cards" disabled>
         </label>
       </div>
-      <div class="row" style="margin-top:10px;align-items:center">
+
+      <div class="row" style="margin-top:10px">
         <div class="actions">
           <button id="btn-load" disabled>Cerca</button>
-          <button id="btn-auto" disabled>Auto refresh: OFF</button>
           <button id="btn-export" disabled>Esporta CSV</button>
           <button id="btn-clear" disabled>Pulisci filtri</button>
+          <button id="btn-auto" disabled>Auto refresh: OFF</button>
         </div>
-        <div class="right pagination">
-          <button id="btn-prev" disabled>&larr; Prev</button>
-          <span id="page-indicator" class="muted">Pagina 1</span>
-          <button id="btn-next" disabled>Next &rarr;</button>
+        <div class="right">
+          <button id="btn-mark-selected" disabled>Segna selezionati come FATTO</button>
         </div>
       </div>
     </section>
@@ -89,181 +103,235 @@
       <table>
         <thead>
           <tr>
-            <th>Quando</th><th>Tipo</th><th>Dettagli</th><th>Utente</th><th>Origine</th><th>ID</th>
+            <th style="width:38px"><input type="checkbox" id="chk-all" disabled></th>
+            <th style="width:110px">Quando</th>
+            <th style="width:160px">Utente</th>
+            <th>Carta</th>
+            <th style="width:110px">Tipo</th>
+            <th style="width:110px">Stato</th>
+            <th style="width:140px">Item ID</th>
+            <th style="width:160px">Event ID</th>
+            <th style="width:120px">Azione</th>
           </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="6" class="muted">Nessun dato</td></tr>
+          <tr><td colspan="9" class="muted">Nessun dato</td></tr>
         </tbody>
       </table>
     </section>
   </main>
 
 <script>
-/* ====================== CONFIG ====================== */
-const API_BASE   = 'https://api.malgax.com';
-const ME_ENDPOINT= '/me';
-const ADMIN_LOGIN= 'malgax';
+/* ===== CONFIG ===== */
+const API_BASE    = 'https://api.malgax.com';
+const ME_ENDPOINT = '/me';
+const ADMIN_LOGIN = 'malgax';
 
-// Se vuoi il POPUP, metti true. Di default usiamo redirect a pagina intera (più affidabile).
-let USE_POPUP = false;
+// Endpoints backend (modificabili se usi percorsi diversi)
+const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';          // GET lista
+const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete'; // POST {id, done}
 
-/* ====================== STATO ====================== */
-let page=0,pageSize=50,autoTimer=null,eventsCache=[],isAdmin=false,popupRef=null;
+/* ===== STATO ===== */
+let isAdmin=false, autoTimer=null, dataCache=[], currentKind='creature';
 
-/* ====================== DOM ====================== */
+/* ===== DOM ===== */
 const $=s=>document.querySelector(s);
-const status=$('#status'),authbar=$('#authbar'),rows=$('#rows');
-const fType=$('#f-type'),fUser=$('#f-user'),fFrom=$('#f-from'),fTo=$('#f-to'),
-      fLimit=$('#f-limit'),fEndpoint=$('#f-endpoint');
-const btnLoad=$('#btn-load'),btnAuto=$('#btn-auto'),btnExport=$('#btn-export'),
-      btnClear=$('#btn-clear'),btnPrev=$('#btn-prev'),btnNext=$('#btn-next'),
-      pageInd=$('#page-indicator'),btnMe=$('#btn-me'),meDump=$('#me-dump');
+const status=$('#status'),authbar=$('#authbar'),count=$('#count');
+const tabs=$('#tabs');
+const fUser=$('#f-user'),fItem=$('#f-item'),fStatus=$('#f-status'),
+      fFrom=$('#f-from'),fTo=$('#f-to'),fLimit=$('#f-limit'),fEndpoint=$('#f-endpoint');
+const btnLoad=$('#btn-load'),btnExport=$('#btn-export'),btnClear=$('#btn-clear'),
+      btnAuto=$('#btn-auto'),btnMarkSel=$('#btn-mark-selected');
+const rows=$('#rows'),chkAll=$('#chk-all');
 
-/* ====================== URL LOGIN/LOGOUT ====================== */
-const PROFILE_URL = new URL(location.origin + '/profile.html'); // pagina che chiude popup (se esiste)
-const AUTH_LOGIN_URL  = USE_POPUP
-  ? (API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(PROFILE_URL.href))
-  : (API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(location.href));
-const AUTH_LOGOUT_URL = API_BASE + '/logout?return_to=' + encodeURIComponent(location.href);
+/* ===== UTILS ===== */
+const toast=(m,c='')=>status.innerHTML=`<span class="${c}">${m}</span>`;
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const fmt=iso=>{ if(!iso)return ''; const d=new Date(iso); return isNaN(d)?String(iso):d.toLocaleString(); };
+function setEnabled(on){
+  [fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnExport,btnClear,btnAuto,btnMarkSel,chkAll].forEach(el=>el.disabled=!on);
+}
 
-/* ====================== UTIL ====================== */
-function toast(msg,cls=''){status.innerHTML=`<span class="${cls}">${msg}</span>`;}
-function setSearchEnabled(on){
-  [fType,fUser,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnAuto,btnExport,btnClear,btnPrev,btnNext].forEach(el=>el.disabled=!on);
-}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
-function fmtDate(iso){if(!iso)return'';const d=new Date(iso);return isNaN(d)?String(iso):d.toLocaleString();}
+/* ===== AUTH ===== */
+const AUTH_LOGIN_URL  = API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(location.href);
+const AUTH_LOGOUT_URL = API_BASE + '/logout?return_to='     + encodeURIComponent(location.href);
+const getLogin = me => (me?.login || me?.username || me?.name || me?.display_name || '').toString().toLowerCase();
 
-/* ====================== AUTH UI ====================== */
-function getLoginFromMe(me){
-  // Prova varie forme comuni
-  return (me?.login
-      || me?.username
-      || me?.name
-      || me?.display_name
-      || me?.user?.login
-      || me?.data?.login
-      || me?.data?.user?.login
-      || '').toString().toLowerCase();
-}
-function renderAuth(me){
-  authbar.innerHTML='';
-  const who=getLoginFromMe(me);
-  if(who){
-    authbar.innerHTML=
-      `<span class="status ok">Loggato come ${esc(who)}</span>
-       <button id="btn-out">Logout</button>`;
-    $('#btn-out').onclick=()=>{ location.href = AUTH_LOGOUT_URL; };
-    isAdmin=(who===ADMIN_LOGIN);
-    setSearchEnabled(isAdmin);
-    toast(isAdmin?'Accesso admin OK (malgax)':'Loggato, ma non autorizzato','ok');
-  }else{
-    authbar.innerHTML=
-      `<span class="status">Non loggato</span>
-       <button id="btn-in">Login con Twitch</button>`;
-    $('#btn-in').onclick=()=>openLogin();
-    isAdmin=false; setSearchEnabled(false);
-  }
-}
-async function checkMe(showDump=false){
+async function checkMe(){
   try{
     const res=await fetch(API_BASE+ME_ENDPOINT,{credentials:'include',cache:'no-store'});
-    if(!res.ok){ throw new Error('HTTP '+res.status); }
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const me=await res.json();
-    renderAuth(me);
-    if(showDump){ meDump.textContent = JSON.stringify(me,null,2); }
-  }catch(err){
-    renderAuth(null);
-    if(showDump){ meDump.textContent = 'ERRORE: '+err.message; }
+    const who=getLogin(me);
+    if(who){
+      authbar.innerHTML=`<span class="status ok">Loggato come ${esc(who)}</span> <button onclick="location.href='${AUTH_LOGOUT_URL}'">Logout</button>`;
+      isAdmin = (who===ADMIN_LOGIN);
+      setEnabled(isAdmin);
+      toast(isAdmin?'Accesso admin OK':'Non autorizzato','ok');
+    }else{
+      authbar.innerHTML=`<span class="status">Non loggato</span> <button onclick="location.href='${AUTH_LOGIN_URL}'">Login con Twitch</button>`;
+      isAdmin=false; setEnabled(false);
+      toast('Non loggato','warn');
+    }
+  }catch{
+    authbar.innerHTML=`<span class="status">Non loggato</span> <button onclick="location.href='${AUTH_LOGIN_URL}'">Login con Twitch</button>`;
+    isAdmin=false; setEnabled(false);
+    toast('Non loggato','warn');
   }
 }
 
-/* ====================== LOGIN FLOW ====================== */
-function openLogin(){
-  if(!USE_POPUP){
-    // modalità semplice e affidabile: redirect nella stessa pagina
-    location.href = AUTH_LOGIN_URL;
-    return;
-  }
-  // POPUP mode
-  const w=520,h=680,y=window.top.outerHeight/2+window.top.screenY-h/2,x=window.top.outerWidth/2+window.top.screenX-w/2;
-  popupRef=window.open(AUTH_LOGIN_URL,'login_twitch',
-    `toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${w},height=${h},top=${y},left=${x}`);
-  if(!popupRef||popupRef.closed){ location.href = AUTH_LOGIN_URL; return; }
-  const poll=setInterval(()=>{ if(!popupRef||popupRef.closed){ clearInterval(poll); checkMe(true); } },500);
-}
-window.addEventListener('focus',()=>checkMe());
-window.addEventListener('message',()=>checkMe(true));
-btnMe.onclick=()=>checkMe(true);
+/* ===== TABS ===== */
+tabs.addEventListener('click', (e)=>{
+  const b=e.target.closest('.tab'); if(!b) return;
+  tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  b.classList.add('active');
+  currentKind = b.dataset.kind; // creature | incantesimo | istantanea
+  if(isAdmin) load();
+});
 
-/* ====================== TABELLA ====================== */
-function currentEndpoint(){
-  const m=(fEndpoint.value||'').trim();
-  if(!m){toast('Scrivi un endpoint (es. /inventory, /api/leaderboard/top, /events)','warn');return null;}
-  return m.startsWith('http')?m:(API_BASE+m);
-}
-function buildQuery(){
-  pageSize=Number(fLimit.value||50)||50;
+/* ===== LOAD ===== */
+function buildParams(){
   return {
-    limit:pageSize, offset:page*pageSize,
-    type:(fType.value||'').trim()||undefined,
-    user:(fUser.value||'').trim()||undefined,
-    from:fFrom.value?new Date(fFrom.value).toISOString():undefined,
-    to:fTo.value?new Date(fTo.value).toISOString():undefined,
+    limit: Number(fLimit.value||100)||100,
+    kind: currentKind,            // filtro per tab
+    status: fStatus.value||'all', // all | pending | done
+    user: (fUser.value||'').trim()||undefined,
+    item: (fItem.value||'').trim()||undefined,
+    from: fFrom.value ? new Date(fFrom.value).toISOString() : undefined,
+    to:   fTo.value   ? new Date(fTo.value).toISOString()   : undefined
   };
 }
+function currentListUrl(){
+  const base = (fEndpoint.value||LIST_ENDPOINT_DEFAULT).trim();
+  return (base.startsWith('http')? base : (API_BASE + base));
+}
+function currentToggleUrl(){
+  return API_BASE + TOGGLE_DONE_ENDPOINT;
+}
+
+async function load(){
+  if(!isAdmin){ toast('Solo malgax può cercare','err'); return; }
+  const url = currentListUrl();
+  const qs  = new URLSearchParams(buildParams()).toString();
+  try{
+    toast('Caricamento…');
+    const res=await fetch(url+'?'+qs,{credentials:'include',cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    dataCache = Array.isArray(data) ? data : (data.items||[]);
+    renderTable(dataCache);
+    count.textContent = `(${dataCache.length} record)`;
+    toast('OK','ok');
+  }catch(e){
+    dataCache=[]; renderTable(dataCache);
+    count.textContent='';
+    toast('Errore: '+e.message,'err');
+  }
+}
+
+/* ===== RENDER ===== */
 function renderTable(items){
   rows.innerHTML='';
-  if(!items?.length){rows.innerHTML='<tr><td colspan="6" class="muted">Nessun dato</td></tr>';return;}
+  if(!items?.length){
+    rows.innerHTML='<tr><td colspan="9" class="muted">Nessun dato</td></tr>';
+    return;
+  }
   const fr=document.createDocumentFragment();
-  for(const ev of items){
+  for(const r of items){
     const tr=document.createElement('tr');
-    const when=ev.created_at||ev.timestamp||ev.time||ev.at||null;
-    const type=ev.type||ev.event_type||ev.kind||'—';
-    const origin=ev.source||ev.origin||ev.provider||'—';
-    const uid=ev.id||ev.event_id||ev._id||'—';
-    const user=ev.user_login||ev.username||ev.user||ev.viewer||ev.twitch_login||'—';
-    const det=Object.assign({},ev);
-    for(const k of ['raw','payload','body']) if(det[k]&&typeof det[k]==='string'&&det[k].length>400) det[k]=det[k].slice(0,400)+'…';
-    tr.innerHTML=
-      `<td>${esc(fmtDate(when))}</td>
-       <td><span class="pill">${esc(type)}</span></td>
-       <td class="json">${esc(JSON.stringify(det,null,2))}</td>
-       <td>${esc(user)}</td>
-       <td class="muted">${esc(origin)}</td>
-       <td class="muted">${esc(uid)}</td>`;
+    const done = !!(r.done || r.completed || r.is_done);
+    tr.innerHTML = `
+      <td><input type="checkbox" class="rowchk" data-id="${esc(r.id)}" ${done?'disabled':''}></td>
+      <td>${esc(fmt(r.created_at))}</td>
+      <td>${esc(r.user_login||'')}</td>
+      <td>${esc(r.item_name||'')}</td>
+      <td><span class="pill">${esc(r.kind||currentKind)}</span></td>
+      <td>${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
+      <td>${esc(r.item_id||'')}</td>
+      <td>${esc(r.id||'')}</td>
+      <td>
+        <button class="btn-done" data-id="${esc(r.id)}" ${done?'disabled':''}>Segna fatto</button>
+      </td>
+    `;
     fr.appendChild(tr);
   }
   rows.appendChild(fr);
+  // abilita pulsanti in base allo stato admin
+  rows.querySelectorAll('button.btn-done').forEach(b=> b.disabled = b.disabled || !isAdmin);
+  rows.querySelectorAll('input.rowchk').forEach(c=> c.disabled = c.disabled || !isAdmin);
+  chkAll.checked = false;
 }
 
-/* ====================== CARICAMENTO ====================== */
-async function load(){
-  if(!isAdmin){toast('Solo malgax può cercare','err');return;}
-  const url=currentEndpoint(); if(!url)return;
-  const qs=new URLSearchParams(buildQuery()).toString();
+/* ===== TOGGLE DONE ===== */
+async function markDoneOne(id){
   try{
-    toast('Caricamento…');
-    const res=await fetch(url+(qs?('?'+qs):''),{credentials:'include',cache:'no-store'});
+    const res=await fetch(currentToggleUrl(),{
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ id, done:true })
+    });
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const items=Array.isArray(data)?data:(data.items||[]);
-    eventsCache=items;
-    renderTable(items);
-    toast(`Caricati ${items.length} elemento/i`,'ok');
-  }catch(e){ renderTable([]); toast('Errore: '+e.message,'err'); }
+    // Aggiorna localmente
+    const row=dataCache.find(x=>String(x.id)===String(id));
+    if(row){ row.done=true; }
+    renderTable(dataCache);
+    toast('Segnato come fatto','ok');
+  }catch(e){
+    toast('Errore segna fatto: '+e.message,'err');
+  }
+}
+async function markDoneSelected(){
+  const ids=[...rows.querySelectorAll('input.rowchk:checked')].map(c=>c.dataset.id);
+  if(!ids.length){ toast('Seleziona almeno una riga','warn'); return; }
+  // invii sequenziali semplici; se vuoi, si può ottimizzare in batch lato server
+  for(const id of ids){ await markDoneOne(id); }
 }
 
-/* ====================== WIRE ====================== */
-btnLoad.onclick=()=>{page=0;load();};
-btnClear.onclick=()=>{fType.value=fUser.value=fFrom.value=fTo.value='';};
-[fType,fUser,fFrom,fTo,fLimit,fEndpoint].forEach(el=>el.addEventListener('keydown',e=>{
-  if(e.key==='Enter' && isAdmin){ page=0; load(); }
-}));
+/* ===== AUTO REFRESH ===== */
+function toggleAuto(){
+  if(!isAdmin){ toast('Solo malgax può usare auto refresh','err'); return; }
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; btnAuto.textContent='Auto refresh: OFF'; toast('Auto refresh OFF'); }
+  else{ autoTimer=setInterval(()=>load().catch(()=>{}),15000); btnAuto.textContent='Auto refresh: ON (15s)'; toast('Auto refresh ON'); }
+}
 
-// Avvio
-checkMe(true);
+/* ===== EXPORT ===== */
+function exportCSV(){
+  if(!isAdmin){ toast('Solo malgax può esportare','err'); return; }
+  if(!dataCache?.length){ toast('Niente da esportare','warn'); return; }
+  const cols=['created_at','user_login','item_name','kind','done','item_id','id'];
+  const lines=[cols.join(',')];
+  for(const r of dataCache){
+    const row=[r.created_at, r.user_login, r.item_name, (r.kind||currentKind), (r.done||r.completed||r.is_done)?'true':'false', r.item_id, r.id];
+    lines.push(row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','));
+  }
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`used_cards_${currentKind}_${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ===== WIRE ===== */
+btnLoad.onclick = ()=>load();
+btnExport.onclick=()=>exportCSV();
+btnClear.onclick = ()=>{ fUser.value=fItem.value=fFrom.value=fTo.value=''; fStatus.value='all'; };
+btnAuto.onclick  = ()=>toggleAuto();
+btnMarkSel.onclick = ()=>markDoneSelected();
+chkAll.onchange = ()=>{
+  rows.querySelectorAll('input.rowchk').forEach(c=>{
+    if(!c.disabled) c.checked = chkAll.checked;
+  });
+};
+rows.addEventListener('click', e=>{
+  const b=e.target.closest('.btn-done'); if(b){ markDoneOne(b.dataset.id); }
+});
+[fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint].forEach(el=>{
+  el.addEventListener('keydown', e=>{ if(e.key==='Enter' && isAdmin) load(); });
+});
+
+/* Avvio */
+checkMe();
 </script>
 </body>
 </html>
