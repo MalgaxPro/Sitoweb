@@ -19,6 +19,7 @@
     .filters label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
     input,select,button{background:#0e1324;color:var(--text);border:1px solid #2a3150;border-radius:10px;padding:8px 10px}
     button{cursor:pointer}
+    button[disabled]{opacity:.45;cursor:not-allowed}
     .row{display:flex;gap:10px;flex-wrap:wrap}
     .actions{display:flex;gap:10px}
     .table{overflow:auto;border-radius:12px;border:1px solid #20263e}
@@ -29,13 +30,13 @@
     .muted{color:var(--muted);font-size:12px}
     .pill{display:inline-block;padding:2px 8px;border:1px solid #3a3f57;border-radius:999px;font-size:12px;color:#cfd5ff;background:#141b33}
     .pagination{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-    .pagination button[disabled]{opacity:.45;cursor:not-allowed}
     .right{margin-left:auto}
     .json{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;white-space:pre-wrap;word-break:break-word}
     .status{font-size:12px;color:var(--muted)}
     .ok{color:#9cffbd}
     .warn{color:#ffd27a}
     .err{color:#ff9b9b}
+    .sep{height:1px;background:#20263e;margin:10px -14px}
   </style>
 </head>
 <body>
@@ -47,32 +48,36 @@
 
   <main>
     <section class="panel">
+      <div class="row" style="align-items:center;gap:12px">
+        <div id="authbar" class="status">Controllo login…</div>
+        <div class="sep"></div>
+      </div>
       <div class="filters">
         <label>Tipo evento
-          <input id="f-type" placeholder="es. subscribe, purchase, redeem">
+          <input id="f-type" placeholder="es. subscribe, purchase, redeem" disabled>
         </label>
         <label>Utente
-          <input id="f-user" placeholder="login o ID">
+          <input id="f-user" placeholder="login o ID" disabled>
         </label>
         <label>Dal
-          <input id="f-from" type="datetime-local">
+          <input id="f-from" type="datetime-local" disabled>
         </label>
         <label>Al
-          <input id="f-to" type="datetime-local">
+          <input id="f-to" type="datetime-local" disabled>
         </label>
         <label>Limite
-          <input id="f-limit" type="number" min="1" max="500" value="50">
+          <input id="f-limit" type="number" min="1" max="500" value="50" disabled>
         </label>
-        <label>Endpoint (facoltativo)
-          <input id="f-endpoint" placeholder="/events (default)">
+        <label>Endpoint (scrivi qui)
+          <input id="f-endpoint" placeholder="/events (quando lo crei) — per test: /inventory o /api/leaderboard/top" disabled>
         </label>
       </div>
       <div class="row" style="margin-top:10px;align-items:center">
         <div class="actions">
-          <button id="btn-load">Carica</button>
-          <button id="btn-auto">Auto refresh: OFF</button>
-          <button id="btn-export">Esporta CSV</button>
-          <button id="btn-clear">Pulisci filtri</button>
+          <button id="btn-load" disabled>Cerca</button>
+          <button id="btn-auto" disabled>Auto refresh: OFF</button>
+          <button id="btn-export" disabled>Esporta CSV</button>
+          <button id="btn-clear" disabled>Pulisci filtri</button>
         </div>
         <div class="right pagination">
           <button id="btn-prev" disabled>&larr; Prev</button>
@@ -95,31 +100,34 @@
           </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="6" class="muted">Nessun dato. Premi “Carica”.</td></tr>
+          <tr><td colspan="6" class="muted">Nessun dato. Fai Login con Twitch e, se sei <b>malgax</b>, potrai usare “Cerca”.</td></tr>
         </tbody>
       </table>
     </section>
   </main>
 
 <script>
-// ====== CONFIGURAZIONE ======
-const API_BASE = 'https://api.malgax.com'; // backend su Render
+// ====== CONFIG BASE ======
+const API_BASE = 'https://api.malgax.com';
 const ME_ENDPOINT = '/me';
-const ADMIN_LOGIN = 'malgax'; // il tuo login Twitch (minuscolo)
+const ADMIN_LOGIN = 'malgax'; // solo questo utente può cercare
 
-// endpoint eventi (cambia se il tuo server li espone altrove)
-let DEFAULT_EVENTS_ENDPOINT = '/events';
+// (Quando avrai l'endpoint vero, potrai fissarlo qui. Per ora usiamo il campo input.)
+// let DEFAULT_EVENTS_ENDPOINT = '/events';
 
 // ====== STATO ======
 let page = 0;
 let pageSize = 50;
 let autoTimer = null;
 let eventsCache = [];
+let isAdmin = false;
+let popupRef = null;
 
 // ====== ELEMENTI ======
 const $ = sel => document.querySelector(sel);
 const rows = $('#rows');
 const status = $('#status');
+const authbar = $('#authbar');
 const fType = $('#f-type');
 const fUser = $('#f-user');
 const fFrom = $('#f-from');
@@ -133,6 +141,90 @@ const btnClear = $('#btn-clear');
 const btnPrev = $('#btn-prev');
 const btnNext = $('#btn-next');
 const pageInd = $('#page-indicator');
+
+// ====== LOGIN / LOGOUT con POPUP ======
+const PROFILE_URL = new URL(location.origin + '/profile.html'); // pagina che chiude il popup
+const AUTH_LOGIN_URL  = API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(PROFILE_URL.href);
+const AUTH_LOGOUT_URL = API_BASE + '/logout?return_to='     + encodeURIComponent(location.href);
+
+function renderAuth(me){
+  authbar.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.display = 'flex';
+  wrap.style.alignItems = 'center';
+  wrap.style.gap = '8px';
+
+  if(me?.login){
+    const who = (me.login || '').toLowerCase();
+    const span = document.createElement('span');
+    span.className = 'status ok';
+    span.textContent = `Loggato come ${who}`;
+    const out = document.createElement('button');
+    out.textContent = 'Logout';
+    out.addEventListener('click', ()=> { location.href = AUTH_LOGOUT_URL; });
+
+    wrap.appendChild(span);
+    wrap.appendChild(out);
+
+    // Solo malgax può cercare
+    isAdmin = (who === ADMIN_LOGIN);
+    setSearchEnabled(isAdmin);
+    if(!isAdmin){
+      toast('Sei loggato ma non sei autorizzato a usare “Cerca” (solo malgax).', 'warn');
+    } else {
+      toast('Accesso admin OK. Puoi usare “Cerca”.', 'ok');
+    }
+  } else {
+    const span = document.createElement('span');
+    span.className = 'status';
+    span.textContent = 'Non loggato';
+    const btn = document.createElement('button');
+    btn.textContent = 'Login con Twitch';
+    btn.addEventListener('click', openLoginPopup);
+
+    wrap.appendChild(span);
+    wrap.appendChild(btn);
+    isAdmin = false;
+    setSearchEnabled(false);
+  }
+  authbar.appendChild(wrap);
+}
+
+function openLoginPopup(){
+  // Apri popup su /auth/twitch che alla fine reindirizza su /profile.html (stesso dominio della pagina)
+  const w = 520, h = 680;
+  const y = window.top.outerHeight/2 + window.top.screenY - (h/2);
+  const x = window.top.outerWidth/2 + window.top.screenX - (w/2);
+
+  popupRef = window.open(
+    AUTH_LOGIN_URL,
+    'login_twitch',
+    `toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${w},height=${h},top=${y},left=${x}`
+  );
+
+  // Se il popup è bloccato, fai fallback a redirect intera pagina
+  if(!popupRef || popupRef.closed){
+    location.href = AUTH_LOGIN_URL;
+  }
+}
+
+// Ascolta i messaggi dal popup: profile.html, una volta letti i dati, fa postMessage e poi si chiude.
+// Non ci affidiamo al contenuto del messaggio: al messaggio ricevuto, richiamiamo /me per sicurezza.
+window.addEventListener('message', (ev)=>{
+  try {
+    // accettiamo solo messaggi dal nostro dominio
+    if (new URL(ev.origin).origin !== location.origin) return;
+  } catch (_) { return; }
+  // Qualsiasi messaggio da profile.html → ricontrollo login
+  checkMe();
+});
+
+// ====== ABILITA/DISABILITA CERCA ======
+function setSearchEnabled(on){
+  [fType,fUser,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnAuto,btnExport,btnClear,btnPrev,btnNext].forEach(el=>{
+    el.disabled = !on;
+  });
+}
 
 // ====== UTIL ======
 function fmtDate(iso){
@@ -155,12 +247,17 @@ function toast(msg, cls=''){
   status.innerHTML = `<span class="${cls}">${esc(msg)}</span>`;
 }
 
+// ====== ENDPOINT CORRENTE ======
 function currentEndpoint(){
   const manual = (fEndpoint.value || '').trim();
-  if (manual) return manual.startsWith('http') ? manual : (API_BASE + manual);
-  return API_BASE + DEFAULT_EVENTS_ENDPOINT;
+  if (!manual) {
+    toast('Scrivi un endpoint nel campo in alto. Esempi: /inventory, /api/leaderboard/top, /events (quando lo crei).', 'warn');
+    return null;
+  }
+  return manual.startsWith('http') ? manual : (API_BASE + manual);
 }
 
+// ====== COSTRUZIONE QUERY ======
 function buildQuery(){
   pageSize = Number(fLimit.value || 50) || 50;
   const params = {
@@ -174,29 +271,26 @@ function buildQuery(){
   return params;
 }
 
+// ====== CHECK LOGIN ======
 async function checkMe(){
   try{
-    const res = await fetch(API_BASE + ME_ENDPOINT, { credentials:'include' });
+    const res = await fetch(API_BASE + ME_ENDPOINT, { credentials:'include', cache:'no-store' });
     if(!res.ok) throw new Error('HTTP '+res.status);
     const me = await res.json();
-    const login = me?.login || me?.name || me?.username || '';
-    if((login||'').toLowerCase() !== ADMIN_LOGIN){
-      toast('Accesso negato: utente non autorizzato', 'err');
-      document.querySelector('main').style.display='none';
-      return false;
-    }
-    toast(`Accesso: ${login}`, 'ok');
+    renderAuth(me);
     return true;
   }catch(err){
-    toast('Impossibile verificare accesso. Effettua il login.', 'warn');
+    renderAuth(null);
+    toast('Non loggato. Premi “Login con Twitch”.', 'warn');
     return false;
   }
 }
 
+// ====== RENDER TABELLA ======
 function renderTable(items){
   rows.innerHTML = '';
   if(!items?.length){
-    rows.innerHTML = `<tr><td colspan="6" class="muted">Nessun evento</td></tr>`;
+    rows.innerHTML = `<tr><td colspan="6" class="muted">Nessun dato</td></tr>`;
     return;
   }
   const fr = document.createDocumentFragment();
@@ -222,16 +316,21 @@ function renderTable(items){
   rows.appendChild(fr);
 }
 
+// ====== PAGER ======
 function updatePager(hasNext){
-  btnPrev.disabled = page<=0;
-  btnNext.disabled = !hasNext;
+  btnPrev.disabled = page<=0 || !isAdmin;
+  btnNext.disabled = !hasNext || !isAdmin;
   pageInd.textContent = `Pagina ${page+1}`;
 }
 
+// ====== LOAD ======
 async function load(){
-  const ok = await checkMe();
-  if(!ok) return;
+  if(!isAdmin){
+    toast('Solo malgax può usare “Cerca”.', 'err');
+    return;
+  }
   const url = currentEndpoint();
+  if(!url) return;
   const qs = qstr(buildQuery());
   try{
     toast('Caricamento…');
@@ -251,14 +350,15 @@ async function load(){
   }
 }
 
+// ====== CLEAR / AUTO / EXPORT ======
 function clearFilters(){
   fType.value = '';
   fUser.value = '';
   fFrom.value = '';
   fTo.value = '';
 }
-
 function toggleAuto(){
+  if(!isAdmin){ toast('Solo malgax può usare l’auto refresh.', 'err'); return; }
   if(autoTimer){
     clearInterval(autoTimer); autoTimer=null;
     btnAuto.textContent = 'Auto refresh: OFF';
@@ -269,8 +369,8 @@ function toggleAuto(){
     toast('Auto refresh attivato (15s)');
   }
 }
-
 function exportCSV(){
+  if(!isAdmin){ toast('Solo malgax può esportare.', 'err'); return; }
   if(!eventsCache?.length){
     toast('Niente da esportare', 'warn');
     return;
@@ -302,7 +402,15 @@ btnPrev.addEventListener('click', ()=>{ if(page>0){ page--; load(); }});
 btnNext.addEventListener('click', ()=>{ page++; load(); });
 btnAuto.addEventListener('click', toggleAuto);
 btnExport.addEventListener('click', exportCSV);
-btnClear.addEventListener('click', ()=>{ clearFilters(); page=0; load(); });
+btnClear.addEventListener('click', ()=>{ clearFilters(); page=0; if(isAdmin) load(); });
+
+// Abilita Enter per cercare
+[fType,fUser,fFrom,fTo,fLimit,fEndpoint].forEach(el=>{
+  el.addEventListener('keydown', e=>{ if(e.key==='Enter' && isAdmin){ page=0; load(); }});
+});
+
+// Avvio: controlla login; se non loggato, mostra bottone. Se loggato ma non malgax, disabilita i comandi.
+checkMe();
 </script>
 </body>
 </html>
