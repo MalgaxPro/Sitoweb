@@ -36,6 +36,9 @@
     .ok{color:#9cffbd}
     .warn{color:#ffd27a}
     .err{color:#ff9b9b}
+    details.debug{margin-top:8px}
+    details.debug summary{cursor:pointer;color:#9aa0ff}
+    pre{background:#0e1324;border:1px solid #20263e;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
   </style>
 </head>
 <body>
@@ -48,13 +51,24 @@
   <main>
     <section class="panel">
       <div id="authbar" class="status">Controllo login…</div>
+
+      <details class="debug">
+        <summary>Debug login (/me)</summary>
+        <div style="margin-top:8px">
+          <button id="btn-me">Ricarica /me</button>
+          <pre id="me-dump">(vuoto)</pre>
+        </div>
+      </details>
+
       <div class="filters" style="margin-top:10px">
         <label>Tipo evento <input id="f-type" disabled></label>
         <label>Utente <input id="f-user" disabled></label>
         <label>Dal <input id="f-from" type="datetime-local" disabled></label>
         <label>Al <input id="f-to" type="datetime-local" disabled></label>
         <label>Limite <input id="f-limit" type="number" value="50" disabled></label>
-        <label>Endpoint <input id="f-endpoint" placeholder="/events" disabled></label>
+        <label>Endpoint
+          <input id="f-endpoint" placeholder="/events (quando lo crei). Per test: /inventory o /api/leaderboard/top" disabled>
+        </label>
       </div>
       <div class="row" style="margin-top:10px;align-items:center">
         <div class="actions">
@@ -86,96 +100,170 @@
   </main>
 
 <script>
-const API_BASE = 'https://api.malgax.com';
-const ME_ENDPOINT = '/me';
-const ADMIN_LOGIN = 'malgax';
+/* ====================== CONFIG ====================== */
+const API_BASE   = 'https://api.malgax.com';
+const ME_ENDPOINT= '/me';
+const ADMIN_LOGIN= 'malgax';
 
+// Se vuoi il POPUP, metti true. Di default usiamo redirect a pagina intera (più affidabile).
+let USE_POPUP = false;
+
+/* ====================== STATO ====================== */
 let page=0,pageSize=50,autoTimer=null,eventsCache=[],isAdmin=false,popupRef=null;
 
+/* ====================== DOM ====================== */
 const $=s=>document.querySelector(s);
 const status=$('#status'),authbar=$('#authbar'),rows=$('#rows');
 const fType=$('#f-type'),fUser=$('#f-user'),fFrom=$('#f-from'),fTo=$('#f-to'),
       fLimit=$('#f-limit'),fEndpoint=$('#f-endpoint');
 const btnLoad=$('#btn-load'),btnAuto=$('#btn-auto'),btnExport=$('#btn-export'),
       btnClear=$('#btn-clear'),btnPrev=$('#btn-prev'),btnNext=$('#btn-next'),
-      pageInd=$('#page-indicator');
+      pageInd=$('#page-indicator'),btnMe=$('#btn-me'),meDump=$('#me-dump');
 
-const PROFILE_URL=new URL(location.origin+'/profile.html');
-const AUTH_LOGIN_URL=API_BASE+'/auth/twitch?return_to='+encodeURIComponent(PROFILE_URL.href);
-const AUTH_LOGOUT_URL=API_BASE+'/logout?return_to='+encodeURIComponent(location.href);
+/* ====================== URL LOGIN/LOGOUT ====================== */
+const PROFILE_URL = new URL(location.origin + '/profile.html'); // pagina che chiude popup (se esiste)
+const AUTH_LOGIN_URL  = USE_POPUP
+  ? (API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(PROFILE_URL.href))
+  : (API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(location.href));
+const AUTH_LOGOUT_URL = API_BASE + '/logout?return_to=' + encodeURIComponent(location.href);
 
+/* ====================== UTIL ====================== */
 function toast(msg,cls=''){status.innerHTML=`<span class="${cls}">${msg}</span>`;}
 function setSearchEnabled(on){
   [fType,fUser,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnAuto,btnExport,btnClear,btnPrev,btnNext].forEach(el=>el.disabled=!on);
 }
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+function fmtDate(iso){if(!iso)return'';const d=new Date(iso);return isNaN(d)?String(iso):d.toLocaleString();}
+
+/* ====================== AUTH UI ====================== */
+function getLoginFromMe(me){
+  // Prova varie forme comuni
+  return (me?.login
+      || me?.username
+      || me?.name
+      || me?.display_name
+      || me?.user?.login
+      || me?.data?.login
+      || me?.data?.user?.login
+      || '').toString().toLowerCase();
+}
 function renderAuth(me){
   authbar.innerHTML='';
-  if(me?.login){
-    const who=(me.login||'').toLowerCase();
-    authbar.innerHTML=`<span class="status ok">Loggato come ${who}</span>
-                       <button onclick="location.href='${AUTH_LOGOUT_URL}'">Logout</button>`;
-    isAdmin=(who===ADMIN_LOGIN); setSearchEnabled(isAdmin);
-    toast(isAdmin?'Accesso admin OK':'Non autorizzato','ok');
+  const who=getLoginFromMe(me);
+  if(who){
+    authbar.innerHTML=
+      `<span class="status ok">Loggato come ${esc(who)}</span>
+       <button id="btn-out">Logout</button>`;
+    $('#btn-out').onclick=()=>{ location.href = AUTH_LOGOUT_URL; };
+    isAdmin=(who===ADMIN_LOGIN);
+    setSearchEnabled(isAdmin);
+    toast(isAdmin?'Accesso admin OK (malgax)':'Loggato, ma non autorizzato','ok');
   }else{
-    authbar.innerHTML=`<span class="status">Non loggato</span>
-                       <button onclick="openLoginPopup()">Login con Twitch</button>`;
+    authbar.innerHTML=
+      `<span class="status">Non loggato</span>
+       <button id="btn-in">Login con Twitch</button>`;
+    $('#btn-in').onclick=()=>openLogin();
     isAdmin=false; setSearchEnabled(false);
   }
 }
-async function checkMe(){
+async function checkMe(showDump=false){
   try{
-    const res=await fetch(API_BASE+ME_ENDPOINT,{credentials:'include'});
-    if(!res.ok) throw new Error();
-    renderAuth(await res.json());
-  }catch{renderAuth(null);}
+    const res=await fetch(API_BASE+ME_ENDPOINT,{credentials:'include',cache:'no-store'});
+    if(!res.ok){ throw new Error('HTTP '+res.status); }
+    const me=await res.json();
+    renderAuth(me);
+    if(showDump){ meDump.textContent = JSON.stringify(me,null,2); }
+  }catch(err){
+    renderAuth(null);
+    if(showDump){ meDump.textContent = 'ERRORE: '+err.message; }
+  }
 }
-function openLoginPopup(){
+
+/* ====================== LOGIN FLOW ====================== */
+function openLogin(){
+  if(!USE_POPUP){
+    // modalità semplice e affidabile: redirect nella stessa pagina
+    location.href = AUTH_LOGIN_URL;
+    return;
+  }
+  // POPUP mode
   const w=520,h=680,y=window.top.outerHeight/2+window.top.screenY-h/2,x=window.top.outerWidth/2+window.top.screenX-w/2;
   popupRef=window.open(AUTH_LOGIN_URL,'login_twitch',
     `toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${w},height=${h},top=${y},left=${x}`);
-  if(!popupRef||popupRef.closed){location.href=AUTH_LOGIN_URL;return;}
-  const poll=setInterval(()=>{if(!popupRef||popupRef.closed){clearInterval(poll);checkMe();}},500);
+  if(!popupRef||popupRef.closed){ location.href = AUTH_LOGIN_URL; return; }
+  const poll=setInterval(()=>{ if(!popupRef||popupRef.closed){ clearInterval(poll); checkMe(true); } },500);
 }
 window.addEventListener('focus',()=>checkMe());
-window.addEventListener('message',()=>checkMe());
+window.addEventListener('message',()=>checkMe(true));
+btnMe.onclick=()=>checkMe(true);
 
+/* ====================== TABELLA ====================== */
 function currentEndpoint(){
   const m=(fEndpoint.value||'').trim();
   if(!m){toast('Scrivi un endpoint (es. /inventory, /api/leaderboard/top, /events)','warn');return null;}
   return m.startsWith('http')?m:(API_BASE+m);
 }
 function buildQuery(){
-  pageSize=Number(fLimit.value||50);
-  return {limit:pageSize,offset:page*pageSize,
-          type:fType.value||undefined,user:fUser.value||undefined,
-          from:fFrom.value?new Date(fFrom.value).toISOString():undefined,
-          to:fTo.value?new Date(fTo.value).toISOString():undefined};
+  pageSize=Number(fLimit.value||50)||50;
+  return {
+    limit:pageSize, offset:page*pageSize,
+    type:(fType.value||'').trim()||undefined,
+    user:(fUser.value||'').trim()||undefined,
+    from:fFrom.value?new Date(fFrom.value).toISOString():undefined,
+    to:fTo.value?new Date(fTo.value).toISOString():undefined,
+  };
 }
 function renderTable(items){
   rows.innerHTML='';
-  if(!items?.length){rows.innerHTML='<tr><td colspan=6 class=muted>Nessun dato</td></tr>';return;}
-  items.forEach(ev=>{
-    const when=ev.created_at||ev.timestamp, type=ev.type||ev.event_type||'—',
-          user=ev.user_login||ev.username||'—', origin=ev.source||'—', uid=ev.id||'—';
-    const det=JSON.stringify(ev).slice(0,200);
-    rows.innerHTML+=`<tr><td>${when||''}</td><td><span class=pill>${type}</span></td>
-                     <td class=json>${det}</td><td>${user}</td><td>${origin}</td><td>${uid}</td></tr>`;
-  });
+  if(!items?.length){rows.innerHTML='<tr><td colspan="6" class="muted">Nessun dato</td></tr>';return;}
+  const fr=document.createDocumentFragment();
+  for(const ev of items){
+    const tr=document.createElement('tr');
+    const when=ev.created_at||ev.timestamp||ev.time||ev.at||null;
+    const type=ev.type||ev.event_type||ev.kind||'—';
+    const origin=ev.source||ev.origin||ev.provider||'—';
+    const uid=ev.id||ev.event_id||ev._id||'—';
+    const user=ev.user_login||ev.username||ev.user||ev.viewer||ev.twitch_login||'—';
+    const det=Object.assign({},ev);
+    for(const k of ['raw','payload','body']) if(det[k]&&typeof det[k]==='string'&&det[k].length>400) det[k]=det[k].slice(0,400)+'…';
+    tr.innerHTML=
+      `<td>${esc(fmtDate(when))}</td>
+       <td><span class="pill">${esc(type)}</span></td>
+       <td class="json">${esc(JSON.stringify(det,null,2))}</td>
+       <td>${esc(user)}</td>
+       <td class="muted">${esc(origin)}</td>
+       <td class="muted">${esc(uid)}</td>`;
+    fr.appendChild(tr);
+  }
+  rows.appendChild(fr);
 }
+
+/* ====================== CARICAMENTO ====================== */
 async function load(){
   if(!isAdmin){toast('Solo malgax può cercare','err');return;}
   const url=currentEndpoint(); if(!url)return;
+  const qs=new URLSearchParams(buildQuery()).toString();
   try{
-    const res=await fetch(url+('?'+new URLSearchParams(buildQuery())),{credentials:'include'});
+    toast('Caricamento…');
+    const res=await fetch(url+(qs?('?'+qs):''),{credentials:'include',cache:'no-store'});
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json(),items=Array.isArray(data)?data:(data.items||[]);
-    eventsCache=items; renderTable(items);
-    toast(`Caricati ${items.length} evento/i`,'ok');
-  }catch(e){toast('Errore: '+e.message,'err');}
+    const data=await res.json();
+    const items=Array.isArray(data)?data:(data.items||[]);
+    eventsCache=items;
+    renderTable(items);
+    toast(`Caricati ${items.length} elemento/i`,'ok');
+  }catch(e){ renderTable([]); toast('Errore: '+e.message,'err'); }
 }
+
+/* ====================== WIRE ====================== */
 btnLoad.onclick=()=>{page=0;load();};
 btnClear.onclick=()=>{fType.value=fUser.value=fFrom.value=fTo.value='';};
-checkMe();
+[fType,fUser,fFrom,fTo,fLimit,fEndpoint].forEach(el=>el.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && isAdmin){ page=0; load(); }
+}));
+
+// Avvio
+checkMe(true);
 </script>
 </body>
 </html>
