@@ -429,7 +429,7 @@
     function openPopup(url){
       showModal(true);
       authWin=window.open(url,'authPopup',centerSpecs(640,760));
-      if(!authWin||authWin.closed){ showModal(false); location.href=url.replace('?popup=1',''); return; }
+      if(!authWin||authWin.closed){ try{ loginLink.href = url.replace('?popup=1',''); }catch(_){} /* popup bloccato: lascia il modal aperto */ return; }
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
     }
     function openGiftPopup(){
