@@ -352,13 +352,40 @@
     const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
-    // Intercetta link /logout e /auth/twitch per usare SEMPRE il popup
-    document.addEventListener('click', (ev)=>{
+    // --- Hard intercept of any auth/logout navigation to keep the main page on www.malgax.com
+    const API_ORIGIN_SAFE = (typeof API_ORIGIN === 'string' && API_ORIGIN) || 'https://api.malgax.com';
+    function isAuthHref(href){
+      if(!href) return false;
+      try{
+        const u = new URL(href, location.href);
+        if (u.origin === API_ORIGIN_SAFE && (u.pathname.startsWith('/auth/') || u.pathname === '/logout')) return true;
+      }catch(_){}
+      return href.includes('/auth/') || href.includes('/logout');
+    }
+
+    function interceptAnchor(ev){
       const a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
       if(!a) return;
       const href = a.getAttribute('href') || '';
-      if(href.includes('/logout')){ ev.preventDefault(); openPopup(LOGOUT_URL); }
-      if(href.includes('/auth/twitch')){ ev.preventDefault(); openPopup(LOGIN_URL); }
+      if(!isAuthHref(href)) return;
+      ev.preventDefault();
+      ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+      ev.stopPropagation && ev.stopPropagation();
+      const url = href.includes('/logout') ? LOGOUT_URL : LOGIN_URL;
+      openPopup(url);
+    }
+
+    ['click','auxclick','mousedown','mouseup','pointerup','touchstart'].forEach(type => {
+      window.addEventListener(type, interceptAnchor, true); // capture first
+    });
+
+    // Scrub existing anchors on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
+        a.setAttribute('target','_blank');
+        a.setAttribute('rel','noopener noreferrer');
+        a.addEventListener('click', (e)=>{ e.preventDefault(); interceptAnchor(e); }, {capture:true});
+      });
     });
 
     function notify(msg){
@@ -600,8 +627,11 @@ updateUserPill();
       let items=[];
       try{
         // ✅ usa l’endpoint reale del server: /inventory → { items: [...] }
-        const r = await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' });
-        if(r.ok){ items = await r.json(); }
+        const r = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
+        if(r.ok){
+          const j = await r.json();
+          items = Array.isArray(j) ? j : (j.items || []);
+        }
       }catch(_) {}
 
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
