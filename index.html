@@ -429,7 +429,7 @@
     function openPopup(url){
       showModal(true);
       authWin=window.open(url,'authPopup',centerSpecs(640,760));
-      if(!authWin||authWin.closed){ showModal(false); location.href=url.replace('?popup=1',''); return; }
+      if(!authWin||authWin.closed){ try{ loginLink.href = url.replace('?popup=1',''); }catch(_){} /* popup bloccato: lascia il modal aperto */ return; }
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
     }
     function openGiftPopup(){
@@ -721,39 +721,6 @@ updateUserPill();
     invToggle.addEventListener('click', openInventory);
     invClose .addEventListener('click', closeInventory);
     invMask  .addEventListener('click', closeInventory);
-    // Usa carta dall'inventario (qty=1); se scende a 0 viene rimossa dalla lista
-    invBody.addEventListener('click', async (e) => {
-      const b = e.target.closest && e.target.closest('.inv-use');
-      if(!b) return;
-      const id = Number(b.dataset.id);
-      if(!Number.isFinite(id) || id<=0) return;
-      b.disabled = true;
-      try{
-        const res = await fetch(`${API_ORIGIN}/inventory/use`, {
-          method:'POST',
-          credentials:'include',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ item_id: id, quantity: 1 })
-        });
-        const j = await res.json().catch(()=>({}));
-        if(!res.ok){ throw new Error(j.error || 'use_failed'); }
-        const qEl = document.getElementById('q'+id);
-        if(qEl){
-          const cur = Number((qEl.textContent||'0').replace(/^x/,'')) || 0;
-          const nv = Math.max(0, cur - 1);
-          qEl.textContent = 'x'+nv;
-          if(nv <= 0){
-            const card = qEl.closest('.inv-card');
-            if(card) card.remove();
-            if(!invBody.querySelector('.inv-card')){
-              invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
-            }
-          }
-        }
-      }catch(_){ /* opzionale: toast */ }
-      finally{ if(b && b.isConnected) b.disabled = false; }
-    });
-    
 
     /* ======= CLASSIFICHE A TAB (refresh 60s) ======= */
     const lbPanel = document.getElementById('lbPanel');
