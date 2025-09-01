@@ -38,6 +38,9 @@
     .err{color:#ff9b9b}
     .right{margin-left:auto}
     .count{font-size:12px;color:#c7cbff}
+    details.debug{margin-top:8px}
+    details.debug summary{cursor:pointer;color:#9aa0ff}
+    pre{background:#0e1324;border:1px solid #20263e;border-radius:10px;padding:10px;max-height:240px;overflow:auto}
   </style>
 </head>
 <body>
@@ -97,6 +100,11 @@
           <button id="btn-mark-selected" disabled>Segna selezionati come FATTO</button>
         </div>
       </div>
+
+      <details class="debug">
+        <summary>Debug: mostra il JSON grezzo (primi 3 record)</summary>
+        <pre id="dump">(vuoto)</pre>
+      </details>
     </section>
 
     <section class="panel table">
@@ -104,7 +112,7 @@
         <thead>
           <tr>
             <th style="width:38px"><input type="checkbox" id="chk-all" disabled></th>
-            <th style="width:110px">Quando</th>
+            <th style="width:130px">Quando</th>
             <th style="width:160px">Utente</th>
             <th>Carta</th>
             <th style="width:110px">Tipo</th>
@@ -135,7 +143,7 @@ let isAdmin=false, autoTimer=null, dataCache=[], currentKind='creature';
 
 /* ===== DOM ===== */
 const $=s=>document.querySelector(s);
-const status=$('#status'),authbar=$('#authbar'),count=$('#count');
+const status=$('#status'),authbar=$('#authbar'),count=$('#count'),dump=$('#dump');
 const tabs=$('#tabs');
 const fUser=$('#f-user'),fItem=$('#f-item'),fStatus=$('#f-status'),
       fFrom=$('#f-from'),fTo=$('#f-to'),fLimit=$('#f-limit'),fEndpoint=$('#f-endpoint');
@@ -150,11 +158,15 @@ const fmt=iso=>{ if(!iso)return ''; const d=new Date(iso); return isNaN(d)?Strin
 function setEnabled(on){
   [fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnExport,btnClear,btnAuto,btnMarkSel,chkAll].forEach(el=>el.disabled=!on);
 }
+/* pick(obj, ['a','b','c'], fallback) — prende il primo campo disponibile */
+function pick(o, keys, fb=''){ for(const k of keys){ if(o && o[k]!=null) return o[k]; } return fb; }
+/* lowercase safe */
+const lower = v => (v==null?'':String(v)).toLowerCase();
 
 /* ===== AUTH ===== */
 const AUTH_LOGIN_URL  = API_BASE + '/auth/twitch?return_to=' + encodeURIComponent(location.href);
 const AUTH_LOGOUT_URL = API_BASE + '/logout?return_to='     + encodeURIComponent(location.href);
-const getLogin = me => (me?.login || me?.username || me?.name || me?.display_name || '').toString().toLowerCase();
+const getLogin = me => lower(me?.login || me?.username || me?.name || me?.display_name || me?.user?.login || me?.data?.user?.login);
 
 async function checkMe(){
   try{
@@ -218,12 +230,17 @@ async function load(){
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data=await res.json();
     dataCache = Array.isArray(data) ? data : (data.items||[]);
+
+    // Debug: mostra i primi 3 record grezzi
+    dump.textContent = JSON.stringify(dataCache.slice(0,3), null, 2);
+
     renderTable(dataCache);
     count.textContent = `(${dataCache.length} record)`;
     toast('OK','ok');
   }catch(e){
     dataCache=[]; renderTable(dataCache);
     count.textContent='';
+    dump.textContent='ERRORE: '+e.message;
     toast('Errore: '+e.message,'err');
   }
 }
@@ -236,25 +253,33 @@ function renderTable(items){
     return;
   }
   const fr=document.createDocumentFragment();
+
   for(const r of items){
+    // ——— mapping robusto per colonne chiave ———
+    const when = pick(r, ['created_at','createdAt','timestamp','time','at','used_at','date']);
+    const user = pick(r, ['user_login','username','user','viewer','twitch_login','login','userName','player']);
+    const card = pick(r, ['item_name','card_name','name','item','title']);
+    const kind = pick(r, ['kind','type','card_type'], currentKind);
+    const done = !!pick(r, ['done','completed','is_done','handled'], false);
+    const itemId = pick(r, ['item_id','card_id','itemId','cardId','reward_id','rewardId']);
+    const eid = pick(r, ['id','event_id','_id','eventId']);
+
     const tr=document.createElement('tr');
-    const done = !!(r.done || r.completed || r.is_done);
     tr.innerHTML = `
-      <td><input type="checkbox" class="rowchk" data-id="${esc(r.id)}" ${done?'disabled':''}></td>
-      <td>${esc(fmt(r.created_at))}</td>
-      <td>${esc(r.user_login||'')}</td>
-      <td>${esc(r.item_name||'')}</td>
-      <td><span class="pill">${esc(r.kind||currentKind)}</span></td>
+      <td><input type="checkbox" class="rowchk" data-id="${esc(eid)}" ${done?'disabled':''}></td>
+      <td>${esc(fmt(when))}</td>
+      <td>${esc(user)}</td>
+      <td>${esc(card)}</td>
+      <td><span class="pill">${esc(kind)}</span></td>
       <td>${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
-      <td>${esc(r.item_id||'')}</td>
-      <td>${esc(r.id||'')}</td>
-      <td>
-        <button class="btn-done" data-id="${esc(r.id)}" ${done?'disabled':''}>Segna fatto</button>
-      </td>
+      <td>${esc(itemId)}</td>
+      <td>${esc(eid)}</td>
+      <td><button class="btn-done" data-id="${esc(eid)}" ${done?'disabled':''}>Segna fatto</button></td>
     `;
     fr.appendChild(tr);
   }
   rows.appendChild(fr);
+
   rows.querySelectorAll('button.btn-done').forEach(b=> b.disabled = b.disabled || !isAdmin);
   rows.querySelectorAll('input.rowchk').forEach(c=> c.disabled = c.disabled || !isAdmin);
   chkAll.checked = false;
@@ -270,8 +295,9 @@ async function markDoneOne(id){
       body:JSON.stringify({ id, done:true })
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const row=dataCache.find(x=>String(x.id)===String(id));
-    if(row){ row.done=true; }
+    // aggiorna localmente
+    const row=dataCache.find(x=>String(pick(x,['id','event_id','_id','eventId']))===String(id));
+    if(row){ if('done'in row) row.done=true; else row.completed=true; }
     renderTable(dataCache);
     toast('Segnato come fatto','ok');
   }catch(e){
@@ -284,23 +310,32 @@ async function markDoneSelected(){
   for(const id of ids){ await markDoneOne(id); }
 }
 
-/* ===== AUTO REFRESH ===== */
+/* ===== AUTO / EXPORT ===== */
 function toggleAuto(){
   if(!isAdmin){ toast('Solo malgax può usare auto refresh','err'); return; }
   if(autoTimer){ clearInterval(autoTimer); autoTimer=null; btnAuto.textContent='Auto refresh: OFF'; toast('Auto refresh OFF'); }
   else{ autoTimer=setInterval(()=>load().catch(()=>{}),15000); btnAuto.textContent='Auto refresh: ON (15s)'; toast('Auto refresh ON'); }
 }
-
-/* ===== EXPORT ===== */
 function exportCSV(){
   if(!isAdmin){ toast('Solo malgax può esportare','err'); return; }
   if(!dataCache?.length){ toast('Niente da esportare','warn'); return; }
-  const cols=['created_at','user_login','item_name','kind','done','item_id','id'];
+
+  const cols=['when','user','card','kind','done','item_id','event_id'];
   const lines=[cols.join(',')];
+
   for(const r of dataCache){
-    const row=[r.created_at, r.user_login, r.item_name, (r.kind||currentKind), (r.done||r.completed||r.is_done)?'true':'false', r.item_id, r.id];
+    const row=[
+      fmt(pick(r,['created_at','createdAt','timestamp','time','at','used_at','date'])),
+      pick(r,['user_login','username','user','viewer','twitch_login','login','userName','player']),
+      pick(r,['item_name','card_name','name','item','title']),
+      pick(r,['kind','type','card_type'], currentKind),
+      (pick(r,['done','completed','is_done','handled']) ? 'true' : 'false'),
+      pick(r,['item_id','card_id','itemId','cardId','reward_id','rewardId']),
+      pick(r,['id','event_id','_id','eventId'])
+    ];
     lines.push(row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','));
   }
+
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -314,7 +349,7 @@ btnExport.onclick=()=>exportCSV();
 btnClear.onclick = ()=>{ fUser.value=fItem.value=fFrom.value=fTo.value=''; fStatus.value='all'; };
 btnAuto.onclick  = ()=>toggleAuto();
 btnMarkSel.onclick = ()=>markDoneSelected();
-chkAll.onchange = ()=>{
+$('#chk-all').onchange = ()=>{
   rows.querySelectorAll('input.rowchk').forEach(c=>{
     if(!c.disabled) c.checked = chkAll.checked;
   });
