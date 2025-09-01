@@ -1,170 +1,746 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Malgax Shop</title>
-
-  <!-- Meta SEO / Open Graph -->
-  <meta name="description" content="Partecipa alla sfida Malgax, colleziona e usa le tue carte su Twitch!">
-  <meta property="og:title" content="Malgax Shop">
-  <meta property="og:description" content="Sfida, carte e ricompense per la community Twitch di Malgax.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.malgax.com">
-  <meta property="og:image" content="https://www.malgax.com/assets/preview.jpg">
-
-  <!-- Preconnect per performance -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Malgax — No Udyr challenge</title>
+  <meta name="description" content="No Udyr challenge — Accedi con Twitch, shop carte e classifica punti delle sub sul canale di Malgax." />
   <style>
-    :root {
-      --card-width: 160px;
-      --card-height: 240px;
+    :root{
+      --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
+      --cols-desktop: 5; --cols-tablet: 4; --cols-mobile: 2;
+      --gap: 8px; --ratio-w: 2; --ratio-h: 3;
+    }
+    *{box-sizing:border-box}
+    html,body{min-height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
     }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      text-align: center;
+    /* HERO */
+    .hero{
+      width:100%;
+      background:
+        radial-gradient(800px 300px at 50% 0%, rgba(100,65,165,.25), rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.0));
+      border-bottom:1px solid rgba(255,255,255,.08);
+      padding:22px 24px 14px;
+    }
+    .hero-inner{
+      max-width:1600px; margin:0 auto; padding:0 24px;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+    }
+    .hero-title{
+      margin:0; font-size: clamp(22px, 3vw, 34px); letter-spacing:.3px; font-weight:800;
+      display:flex; align-items:center; gap:10px;
+      text-shadow: 0 2px 20px rgba(100,65,165,.35);
+    }
+    .hero-actions{ display:flex; align-items:center; gap:10px; }
+
+    /* Buttons / pill */
+    .btn{
+      appearance:none; border:0; cursor:pointer; user-select:none;
+      padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff;
+      transition: transform .15s ease;
+    }
+    .btn:active{ transform: translateY(1px) }
+    .hero-login{ padding:8px 12px; }
+    .user-pill{
+      display:flex; align-items:center; gap:8px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      padding:6px 10px; border-radius:999px;
+      font-weight:700; color:#e9e9ff;
+    }
+    .user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .coin-icon{
+      width:14px; height:14px; border-radius:50%;
+      display:inline-block;
+      background:
+        radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.35);
+    }
+    .user-unspent{ font-variant-numeric: tabular-nums; }
+
+    /* Animated earn button */
+    .btn-earn{
+      background: linear-gradient(90deg,#ffe066,#ffbf00,#ffe066);
+      background-size: 200% 100%;
+      color:#1a1200;
+      text-shadow: 0 1px 0 rgba(255,255,255,.4);
+      box-shadow:
+        0 0 0 2px rgba(0,0,0,.2) inset,
+        0 6px 14px rgba(255,200,0,.35),
+        0 0 18px rgba(255,220,80,.35);
+      animation: shine 3s linear infinite, pulse 2.4s ease-in-out infinite;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn-earn::after{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(180px 40px at -20% 50%, rgba(255,255,255,.45), transparent 60%);
+      transform: translateX(-120%);
+      animation: sweep 2.6s ease-in-out infinite 0.6s;
+      pointer-events:none;
+    }
+    @keyframes shine{ 0%{background-position:0% 0} 100%{background-position:200% 0} }
+    @keyframes pulse{ 0%,100%{ transform:scale(1)} 50%{ transform:scale(1.04)} }
+    @keyframes sweep{ 0%,60%{ transform: translateX(-120%) } 100%{ transform: translateX(140%) } }
+
+    /* Layout */
+    .page{ width:100%; max-width:1600px; margin:18px auto; padding:0 24px;
+      display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start; }
+    @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
+    .column{ display:flex; flex-direction:column; gap:16px }
+
+    .card{ background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.25); overflow:hidden }
+    .panel{ padding:18px }
+    .muted{ color:var(--muted); font-size:14px; line-height:1.55 }
+    .title{ font-size:20px; margin:0 }
+
+    /* Left “shop” */
+    .left-card{ background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35) }
+
+    .cat{ margin-bottom:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px }
+    .cat-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px }
+    .cat-title{ margin:0; font-size:16px; color:#eaeaf0; display:flex; align-items:center; gap:10px; }
+    .cat-emoji{ font-size:18px }
+    .cat-line{ height:1px; background:var(--line); flex:1; border-radius:1px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
+
+    .tabs{ display:flex; gap:10px; padding:10px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.06); }
+    .tab{ padding:8px 12px; border-radius:10px; font-weight:700; font-size:14px;
+      background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10);
+      cursor:pointer; }
+    .tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55);
+      box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
+
+    .cards-row{ display:grid; gap: var(--gap); grid-template-columns: repeat(var(--cols-desktop), 1fr); }
+    @media (max-width:980px){ .cards-row{ grid-template-columns: repeat(var(--cols-tablet), 1fr) } }
+    @media (max-width:620px){ .cards-row{ grid-template-columns: repeat(var(--cols-mobile), 1fr) } }
+    .card-item{
+      position:relative; aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); background:#0c0c12;
+      border:1px solid rgba(255,255,255,.12); border-radius:12px; overflow:hidden;
+      display:flex; align-items:center; justify-content:center; padding:0; min-height: 180px;
+      transition: transform .2s ease;
+    }
+    .card-item:hover{ transform: translateY(-2px) }
+    .card-item img{ width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto; }
+
+    /* Modale login */
+    .modal-mask{display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9998}
+    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999}
+    .modal .box{ width:min(420px, 92%); background:#11131a; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px; color:#fff; text-align:center }
+    .modal .hint{ color:#a4a4b5; font-size:13px; margin-top:8px }
+
+    /* Fullscreen viewer */
+    .viewer-mask{ position:fixed; inset:0; background:rgba(0,0,0,.85);
+      display:none; align-items:center; justify-content:center; z-index: 10000; backdrop-filter: blur(2px); }
+    .viewer{ width: clamp(220px, 30.666vw, 300px); aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); perspective: 1400px; position:relative; touch-action: none; }
+    .viewer-inner{
+      position:absolute; inset:0; border-radius:16px; overflow:hidden; background:#0b0b10;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05) inset;
+      transform-style: preserve-3d; will-change: transform; transition: transform .18s ease, box-shadow .2s ease;
+    }
+    .viewer-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; transform: translateZ(20px); }
+    .viewer-shine{
+      position:absolute; inset:-30%;
+      background: radial-gradient(800px 500px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,.22), rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen; pointer-events:none; transform: translateZ(40px); opacity:.65;
+    }
+    .viewer-actions{ position:absolute; top:-46px; right:0; display:flex; gap:8px; }
+    .viewer-btn{
+      background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff;
+      padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.4);
     }
 
-    header {
-      padding: 1rem;
-      background: #222;
+    /* Inventario */
+    .inv-toggle{
+      position:fixed; right:0; top:50%; transform:translateY(-50%);
+      writing-mode:vertical-rl; text-orientation:mixed;
+      background:#6441a5; color:#fff; border:0; border-radius:10px 0 0 10px;
+      padding:12px 10px; font-weight:800; letter-spacing:.5px; cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,.35); z-index:11000;
     }
+    .inv-mask{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; z-index:10990; }
+    .inv-drawer{
+      position:fixed; right:-420px; top:0; height:100vh; width:380px; max-width:88vw;
+      background:#11131a; border-left:1px solid rgba(255,255,255,.12);
+      box-shadow:-12px 0 28px rgba(0,0,0,.45);
+      z-index:11010; display:flex; flex-direction:column; transition:right .25s ease;
+    }
+    .inv-drawer.open{ right:0; }
+    .inv-head{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .inv-title{ margin:0; font-size:16px; }
+    .inv-close{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 10px; cursor:pointer; }
+    .inv-body{ padding:12px; overflow:auto; }
+    .inv-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .inv-card{ background:#16161f; border:1px solid rgba(255,255,255,.08); border-radius:10px; overflow:hidden; display:flex; flex-direction:column }
+    .inv-thumb{ aspect-ratio:2/3; background:#0b0b10; display:flex; align-items:center; justify-content:center; }
+    .inv-thumb img{ width:100%; height:100%; object-fit:contain; }
+    .inv-info{ padding:8px 10px; font-size:13px; color:#dcdcf0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .inv-q{ color:#a4a4b5; font-variant-numeric:tabular-nums; }
+    .inv-actions{ display:flex; gap:8px; padding:8px 10px 12px; border-top:1px solid rgba(255,255,255,.06); }
+    .inv-btn{ background:rgba(20,20,28,.85); border:1px solid rgba(255,255,255,.18); color:#fff; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
+    .inv-btn[disabled]{ opacity:.6; cursor:not-allowed; }
+    .inv-empty{ color:#a4a4b5; text-align:center; padding:16px 8px; }
 
-    #hero-title {
-      font-family: 'Anton', sans-serif;
-      font-size: 2.5rem;
-      margin: 1rem 0;
+    /* Leaderboard (tabs + single card) */
+    .lb-card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow:0 10px 28px rgba(0,0,0,.35);
     }
+    .lb-tabs{ display:flex; gap:10px; padding:10px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.06); }
+    .lb-tab{ padding:8px 12px; border-radius:10px; font-weight:800; font-size:14px; background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10); cursor:pointer; }
+    .lb-tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55); box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
 
-    #cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
-      gap: 1rem;
-      padding: 1rem;
-    }
-
-    .card {
-      background: #333;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      padding: 0.5rem;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .card:hover {
-      transform: scale(1.05);
-    }
-
-    .card img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 9999;
-    }
-    #toast.show {
-      opacity: 1;
-    }
+    .lb-head{ padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; }
+    .lb-title{ margin:0; font-size:16px; font-weight:800 }
+    .lb-refresh{ font-size:13px; color:var(--muted) }
+    .lb-panel{ padding:12px 16px 16px; }
+    .lb-table{ width:100%; border-collapse:collapse; }
+    .lb-table th, .lb-table td{ padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,.06); }
+    .lb-table th{ font-size:13px; color:#d6d6e8; letter-spacing:.2px; }
+    .lb-rank{ width:70px; color:#cfcff0; font-variant-numeric:tabular-nums; }
+    .lb-user{ font-weight:700 }
+    .lb-pts{ text-align:right; font-variant-numeric:tabular-nums; }
+    .lb-empty, .lb-err{ padding:14px; color:var(--muted); }
   </style>
 </head>
 <body>
-  <header>
-    <h1 id="hero-title">No Udyr Challenge</h1>
-    <button onclick="fetchCards()">Pesca Carta</button>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title">🔥 No Udyr challenge</h1>
+      <div class="hero-actions">
+        <div id="userPill" class="user-pill" style="display:none">
+          <span id="userName" class="user-name">—</span>
+          <span class="coin-icon" aria-hidden="true"></span>
+          <span id="userUnspent" class="user-unspent">0</span>
+        </div>
+        <button id="btnAuth" class="btn hero-login" type="button">Accedi</button>
+        <button id="btnEarn" class="btn btn-earn" type="button" aria-label="Guadagna punti su Twitch">🪙 Guadagna punti</button>
+      </div>
+    </div>
   </header>
 
-  <main>
-    <div id="cards"></div>
+  <main class="page">
+    <!-- Colonna SINISTRA: SHOP CARTE -->
+    <section class="left-card" aria-labelledby="left-title">
+      <h2 id="left-title" class="title" style="margin:0 0 8px">Preview carte</h2>
+
+      <div class="cat" id="cat-creature">
+        <div class="cat-head">
+          <h3 class="cat-title"><span class="cat-emoji">🐉</span> <strong>Champions</strong></h3>
+          <div class="cat-line"></div>
+        </div>
+
+        <nav class="tabs" role="tablist" aria-label="Champions per costo" style="margin:4px 0 10px;">
+          <button class="tab is-active" role="tab" aria-selected="true" aria-controls="crea-2" data-target="crea-2">Costo 2</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="crea-3" data-target="crea-3">Costo 3</button>
+          <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
+        </nav>
+
+        <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2"></div>
+        <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none"></div>
+        <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none"></div>
+      </div>
+
+      <div class="cat" id="cat-spell">
+        <div class="cat-head">
+          <h3 class="cat-title"><span class="cat-emoji">🪄</span> Incantesimi</h3>
+          <div class="cat-line"></div>
+        </div>
+        <div class="cards-row" id="spellsRow"></div>
+      </div>
+
+      <div class="cat" id="cat-instant" style="margin-bottom:0;">
+        <div class="cat-head">
+          <h3 class="cat-title"><span class="cat-emoji">⚡</span> Istantanee</h3>
+          <div class="cat-line"></div>
+        </div>
+        <div class="cards-row" id="instantsRow"></div>
+      </div>
+    </section>
+
+    <!-- Colonna DESTRA: REGOLE + CLASSIFICHE -->
+    <section class="column">
+      <!-- REGOLE -->
+      <div class="card">
+        <nav class="tabs" role="tablist" aria-label="Regole della sfida">
+          <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
+        </nav>
+        <div id="regole" class="panel" role="tabpanel" aria-labelledby="tab-regole">
+          <ul class="muted" style="margin:0; padding-left:16px">
+            <li>🪙 <strong>Punti:</strong> Guadagna punti con ogni sub (anche regalata) che effettui sul canale.</li>
+            <li>💸 <strong>Spendi:</strong> per creare combo incredibili.</li>
+            <li>❌ <strong>No Udyr</strong></li>
+            <li>🧭 <strong>Unranked → Master</strong></li>
+            <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
+            <li>🐉 <strong>Champions</strong>: scegliete il <u>campione</u> che giocherò nella <u>prossima partita</u>.</li>
+            <li>🪄 <strong>Incantesimi</strong>: utilizzabili <u>prima</u> dell’inizio della partita.</li>
+            <li>⚡ <strong>Istantanee</strong>: utilizzabili <u>in qualsiasi momento</u> della partita.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CLASSIFICHE A TAB -->
+      <div class="lb-card" id="lbCard">
+        <div class="lb-tabs" role="tablist" aria-label="Seleziona classifica">
+          <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="🏆 Top Donator" role="tab" aria-selected="true">🏆 Top Donator</button>
+          <button class="lb-tab" id="tabUnspent" data-url="/api/leaderboard/unspent" data-title="🪙 Punti non spesi" role="tab" aria-selected="false">🪙 Punti non spesi</button>
+        </div>
+        <div class="lb-head">
+          <h3 class="lb-title" id="lbTitle">🏆 Top Donator</h3>
+          <div class="lb-refresh">refresh ogni 60s</div>
+        </div>
+        <div id="lbPanel" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
+      </div>
+    </section>
   </main>
 
-  <div id="toast"></div>
+  <!-- Login popup -->
+  <div id="mask" class="modal-mask"></div>
+  <div id="modal" class="modal" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="box">
+      <div style="font-weight:700; margin-bottom:6px;">Accedi con Twitch</div>
+      <div class="muted">Si sta aprendo una finestra per l’accesso…<br/>Se il popup è bloccato, <a id="loginLink" href="https://api.malgax.com/auth/twitch" style="color:#9cb3ff">clicca qui</a>.</div>
+      <div class="hint">Al termine, questa finestra si chiuderà automaticamente.</div>
+    </div>
+  </div>
+
+  <!-- Viewer fullscreen -->
+  <div id="viewerMask" class="viewer-mask" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="viewer" id="viewer">
+      <div class="viewer-inner" id="viewerInner">
+        <img id="viewerImg" class="viewer-img" src="" alt="" />
+        <div id="viewerShine" class="viewer-shine"></div>
+      </div>
+      <div class="viewer-actions">
+        <button id="viewerBuy" class="viewer-btn" type="button">🛒 Compra</button>
+        <button id="viewerClose" class="viewer-btn" type="button" aria-label="Chiudi">✕ Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventario -->
+  <button id="invToggle" class="inv-toggle" type="button">Inventario</button>
+  <div id="invMask" class="inv-mask"></div>
+  <aside id="invDrawer" class="inv-drawer" aria-hidden="true" aria-label="Inventario">
+    <div class="inv-head">
+      <h3 class="inv-title">🎒 Inventario</h3>
+      <button id="invClose" class="inv-close" type="button">Chiudi</button>
+    </div>
+    <div id="invBody" class="inv-body">
+      <div class="inv-empty">Caricamento…</div>
+    </div>
+  </aside>
 
   <script>
-    // Config
-    const SHOW_HERO_TITLE = true;
-    const API_ORIGIN = '/api';
+    const API_ORIGIN="https://api.malgax.com";
+    const LOGIN_URL =API_ORIGIN+"/auth/twitch?popup=1";
+    const LOGOUT_URL=API_ORIGIN+"/logout?popup=1";
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!SHOW_HERO_TITLE) {
-        document.getElementById('hero-title').style.display = 'none';
+    /* ======= Login popup / pill ======= */
+    const btnAuth=document.getElementById('btnAuth');
+    const btnEarn=document.getElementById('btnEarn');
+    const mask=document.getElementById('mask');
+    const modal=document.getElementById('modal');
+    const loginLink=document.getElementById('loginLink');
+
+    let loggedIn=false, authWin=null, monitor=null;
+    const setUI=()=>btnAuth.textContent=loggedIn?'Logout':'Accedi'; setUI();
+
+    function centerSpecs(w,h){
+      const l=window.screenLeft??screen.left, t=window.screenTop??screen.top;
+      const W=window.innerWidth||document.documentElement.clientWidth||screen.width;
+      const H=window.innerHeight||document.documentElement.clientHeight||screen.height;
+      return `scrollbars=yes,width=${w},height=${h},top=${t+Math.max(0,(H-h)/2)},left=${l+Math.max(0,(W-w)/2)}`;
+    }
+    function showModal(v){ mask.style.display=v?'block':'none'; modal.style.display=v?'flex':'none'; modal.setAttribute('aria-hidden',v?'false':'true'); }
+    function openPopup(url){
+      showModal(true);
+      authWin=window.open(url,'authPopup',centerSpecs(640,760));
+      if(!authWin||authWin.closed){ showModal(false); location.href=url.replace('?popup=1',''); return; }
+      monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
+    }
+    function openGiftPopup(){
+      const url='https://www.twitch.tv/subs/malgax?gift=true';
+      window.open(url,'giftPopup',centerSpecs(900,800));
+    }
+
+    const pillEl     = document.getElementById('userPill');
+    const pillNameEl = document.getElementById('userName');
+    const pillPtsEl  = document.getElementById('userUnspent');
+
+    function renderPill(me){
+      if(!me){ pillEl.style.display='none'; return; }
+      const username = me.username || me.user || me.twitch_username || 'Utente';
+      const unspent  = (typeof me.unspent_points === 'number') ? me.unspent_points
+                    : (typeof me.points === 'number') ? me.points : 0;
+      pillNameEl.textContent = username;
+      pillPtsEl.textContent  = unspent;
+      pillEl.style.display   = 'flex';
+      loggedIn = true; setUI();
+    }
+
+    async function fetchMe(){
+      try{
+        const res = await fetch(`${API_ORIGIN}/me`, { credentials:'include', cache:'no-store' });
+        if(!res.ok) return null;
+        return await res.json();
+      }catch(e){ return null; }
+    }
+    async function updateUserPill(){
+      const me = await fetchMe();
+      if(me && (me.username || me.user || me.twitch_username)){ renderPill(me); }
+      else { pillEl.style.display = 'none'; loggedIn=false; setUI(); }
+    }
+    async function waitForLoginAndClose(timeoutMs=15000){
+      const start=Date.now();
+      while(Date.now()-start < timeoutMs){
+        const me = await fetchMe();
+        if(me){
+          renderPill(me);
+          try{ if(authWin && !authWin.closed) authWin.close(); }catch(e){}
+          showModal(false);
+          return true;
+        }
+        await new Promise(r=>setTimeout(r,600));
       }
-      fetchCards();
+      showModal(false);
+      return false;
+    }
+
+    btnAuth.addEventListener('click',(e)=>{
+      e.preventDefault();
+      if(!loggedIn){
+        loginLink.href=LOGIN_URL; openPopup(LOGIN_URL); waitForLoginAndClose();
+      }else{
+        openPopup(LOGOUT_URL);
+        const start=Date.now();
+        const wait=setInterval(()=>{
+          const closed=!authWin||authWin.closed;
+          if(closed||Date.now()-start>6000){
+            clearInterval(wait);
+            loggedIn=false; setUI(); pillEl.style.display='none'; showModal(false);
+          }
+        },400);
+      }
+    });
+    btnEarn.addEventListener('click', openGiftPopup);
+
+    window.addEventListener('message',(ev)=>{
+      if(ev.origin !== API_ORIGIN) return;
+      const d=ev.data||{};
+      if(d.type==='me'){ renderPill(d.me); }
+      if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); updateUserPill(); }
+      if(d.type==='logout'){ loggedIn=false; setUI(); pillEl.style.display='none'; try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
     });
 
-    async function fetchCards() {
-      try {
-        const res = await fetch(`${API_ORIGIN}/shop/list`, { credentials: 'include' });
-        if (!res.ok) throw new Error('Errore caricamento carte');
-        const cards = await res.json();
-        renderCards(cards);
-      } catch (err) {
-        showToast('Errore nel caricamento delle carte');
-        console.error(err);
-      }
-    }
+    updateUserPill();
 
-    function renderCards(cards) {
-      const container = document.getElementById('cards');
-      container.innerHTML = '';
-      cards.forEach(card => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <img src="assets/${card.image}" alt="${card.name}" loading="lazy" decoding="async"/>
-          <h3>${card.name}</h3>
-          <p>${card.kind}</p>
-          <button onclick="buyItem(${card.id})">Compra</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    async function buyItem(id) {
-      try {
-        const key = crypto.randomUUID();
-        const res = await fetch(`${API_ORIGIN}/shop/buy/${id}`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Idempotency-Key': key
-          }
+    /* ======= Tabs Champions ======= */
+    (function(){
+      const root  = document.getElementById('cat-creature');
+      if(!root) return;
+      const tabs  = root.querySelectorAll('.tabs .tab');
+      const panes = root.querySelectorAll('[role="tabpanel"]');
+      tabs.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          tabs.forEach(b=>b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          panes.forEach(p=>p.style.display='none');
+          const id = btn.dataset.target;
+          const pane = root.querySelector('#'+id);
+          if(pane) pane.style.display = '';
         });
-        if (!res.ok) throw new Error('Acquisto fallito');
-        showToast('Acquisto completato!');
-      } catch (err) {
-        showToast('Errore nell’acquisto');
-        console.error(err);
+      });
+    })();
+
+    /* ======= Fullscreen viewer ======= */
+    const viewerMask = document.getElementById('viewerMask');
+    const viewer = document.getElementById('viewer');
+    const viewerInner = document.getElementById('viewerInner');
+    const viewerImg = document.getElementById('viewerImg');
+    const viewerShine = document.getElementById('viewerShine');
+    const btnBuy = document.getElementById('viewerBuy');
+    const btnClose = document.getElementById('viewerClose');
+
+    let idle = false, idleRAF = 0, idleStart = 0;
+    let CURRENT_ITEM = null;
+
+    function startIdleTilt(){
+      idle = true;
+      idleStart = performance.now();
+      function loop(t){
+        if(!idle) return;
+        const k = (t - idleStart) / 1000;
+        const rx = Math.sin(k*1.3) * 6;
+        const ry = Math.cos(k*1.1) * 6;
+        viewerInner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) scale(1.03)`;
+        viewerShine.style.setProperty('--sx', `${(Math.cos(k*1.2)*0.25+0.5)*100}%`);
+        viewerShine.style.setProperty('--sy', `${(Math.sin(k*1.2)*0.25+0.5)*100}%`);
+        idleRAF = requestAnimationFrame(loop);
+      }
+      idleRAF = requestAnimationFrame(loop);
+    }
+    function stopIdleTilt(){ idle = false; if(idleRAF) cancelAnimationFrame(idleRAF); idleRAF = 0; }
+
+    function openViewerForItem(item){
+      CURRENT_ITEM = item || null;
+      viewerImg.src = item?.image_url || '';
+      viewerImg.alt = item?.name || '';
+      viewerMask.style.display = 'flex'; viewerMask.setAttribute('aria-hidden','false');
+      document.documentElement.style.overflow = 'hidden';
+      startIdleTilt();
+    }
+    function closeViewer(){
+      viewerMask.style.display = 'none'; viewerMask.setAttribute('aria-hidden','true');
+      document.documentElement.style.overflow = ''; stopIdleTilt();
+      viewerInner.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1.0)';
+      CURRENT_ITEM = null;
+    }
+
+    viewerMask.addEventListener('click', (e)=>{ if(e.target === viewerMask) closeViewer(); });
+    btnClose.addEventListener('click', closeViewer);
+    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeViewer(); });
+
+    /* ======= Shop (data) ======= */
+    const crea2El = document.getElementById('crea-2');
+    const crea3El = document.getElementById('crea-3');
+    const crea5El = document.getElementById('crea-5');
+    const spellsEl = document.getElementById('spellsRow');
+    const instantsEl = document.getElementById('instantsRow');
+
+    function makeCard(item){
+      const fig = document.createElement('figure');
+      fig.className = 'card-item';
+      fig.dataset.itemId = item.id;
+      fig.dataset.itemName = item.name;
+      fig.dataset.itemCost = item.cost_points;
+
+      const img = document.createElement('img');
+      img.src = item.image_url;
+      img.alt = item.name;
+      fig.appendChild(img);
+
+      fig.addEventListener('click', (e)=>{
+        e.preventDefault();
+        openViewerForItem(item);
+      });
+
+      return fig;
+    }
+
+    async function loadAndRenderItems(){
+      [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
+        if(!el) return;
+        el.innerHTML = '';
+        for(let i=0;i<10;i++){
+          const ph = document.createElement('div');
+          ph.className = 'card-item';
+          ph.style.background = '#0c0c12 linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0))';
+          el.appendChild(ph);
+        }
+      });
+
+      let items=[];
+      try{
+        const r = await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' });
+        if(r.ok) items = await r.json();
+      }catch(_){}
+
+      [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
+
+      const creatures = items.filter(i=>i.kind==='creature');
+      const spells    = items.filter(i=>i.kind==='spell');
+      const instants  = items.filter(i=>i.kind==='instant');
+
+      const c2 = creatures.filter(i=>Number(i.cost_points)===2);
+      const c3 = creatures.filter(i=>Number(i.cost_points)===3);
+      const c5 = creatures.filter(i=>Number(i.cost_points)===5);
+
+      c2.forEach(i=>crea2El.appendChild(makeCard(i)));
+      c3.forEach(i=>crea3El.appendChild(makeCard(i)));
+      c5.forEach(i=>crea5El.appendChild(makeCard(i)));
+
+      if(!c2.length) crea2El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
+      if(!c3.length) crea3El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
+      if(!c5.length) crea5El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
+
+      if(spells.length) spells.forEach(i=>spellsEl.appendChild(makeCard(i)));
+      else spellsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
+
+      if(instants.length) instants.forEach(i=>instantsEl.appendChild(makeCard(i)));
+      else instantsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna istantanea</div>';
+    }
+    loadAndRenderItems();
+
+    document.getElementById('viewerBuy').addEventListener('click', async ()=>{
+      if(!CURRENT_ITEM){ alert('Seleziona una carta.'); return; }
+      try{
+        const r = await fetch(`${API_ORIGIN}/shop/purchase`, {
+          method:'POST', credentials:'include',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ item_id: CURRENT_ITEM.id, quantity: 1 })
+        });
+        if(r.status === 401){
+          openPopup(LOGIN_URL);
+          await waitForLoginAndClose(15000);
+          return;
+        }
+        const j = await r.json();
+        if(!r.ok){ throw new Error(j.error||'purchase_failed'); }
+        alert(`Acquisto riuscito: ${CURRENT_ITEM.name} (-${CURRENT_ITEM.cost_points} punti)`);
+        updateUserPill();
+      }catch(e){ alert('Errore acquisto: ' + e.message); }
+    });
+    document.getElementById('viewerClose').addEventListener('click', ()=> {
+      document.querySelector('.viewer-mask').style.display='none';
+      document.documentElement.style.overflow='';
+    });
+
+    /* ======= Inventario ======= */
+    const invToggle = document.getElementById('invToggle');
+    const invMask   = document.getElementById('invMask');
+    const invDrawer = document.getElementById('invDrawer');
+    const invBody   = document.getElementById('invBody');
+    const invClose  = document.getElementById('invClose');
+
+    async function loadInventory(){
+      invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
+      try{
+        const res = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
+        if(res.status === 401){
+          invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
+          const b = document.getElementById('invLoginBtn');
+          if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
+          return;
+        }
+        let data = await res.json();
+        data = Array.isArray(data) ? data.filter(it => Number(it.quantity) > 0) : [];
+        if(!data.length){
+          invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
+          return;
+        }
+        const grid = document.createElement('div');
+        grid.className = 'inv-grid';
+        data.forEach(it=>{
+          const card = document.createElement('div');
+          card.className = 'inv-card';
+          card.innerHTML = `
+            <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
+            <div class="inv-info"><span>${it.name}</span><span class="inv-q" data-q="${it.quantity}">x${it.quantity}</span></div>
+            <div class="inv-actions"><button class="inv-btn inv-use" type="button">Usa</button></div>
+          `;
+          const useBtn = card.querySelector('.inv-use');
+          const qEl    = card.querySelector('.inv-q');
+          useBtn.addEventListener('click', async ()=>{
+            useBtn.disabled = true;
+            try{
+              const r = await fetch(`${API_ORIGIN}/inventory/use`, {
+                method:'POST', credentials:'include',
+                headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify({ item_id: it.item_id, quantity: 1 })
+              });
+              if(r.status === 401){
+                openPopup(LOGIN_URL);
+                await waitForLoginAndClose(15000);
+                useBtn.disabled = false;
+                return;
+              }
+              const j = await r.json();
+              if(!r.ok){ throw new Error(j.error||'use_failed'); }
+              const cur = parseInt(qEl.getAttribute('data-q'), 10) || 0;
+              const nxt = Math.max(0, cur - 1);
+              qEl.setAttribute('data-q', String(nxt));
+              qEl.textContent = 'x' + nxt;
+              if(nxt === 0){
+                card.style.opacity = '.6';
+                card.style.transition = 'opacity .2s ease, transform .2s ease';
+                card.style.transform = 'scale(.98)';
+                setTimeout(()=> card.remove(), 180);
+              }
+            }catch(e){
+              alert('Errore uso: ' + e.message);
+            }finally{
+              useBtn.disabled = false;
+            }
+          });
+          grid.appendChild(card);
+        });
+        invBody.innerHTML = '';
+        invBody.appendChild(grid);
+      }catch(e){
+        invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
+      }
+    }
+    function openInventory(){ invMask.style.display = 'block'; invDrawer.classList.add('open'); invDrawer.setAttribute('aria-hidden','false'); loadInventory(); }
+    function closeInventory(){ invMask.style.display = 'none'; invDrawer.classList.remove('open'); invDrawer.setAttribute('aria-hidden','true'); }
+    invToggle.addEventListener('click', openInventory);
+    invClose .addEventListener('click', closeInventory);
+    invMask  .addEventListener('click', closeInventory);
+
+    /* ======= CLASSIFICHE A TAB (refresh 60s) ======= */
+    const lbPanel = document.getElementById('lbPanel');
+    const lbTitle = document.getElementById('lbTitle');
+    const tabTop = document.getElementById('tabTop');
+    const tabUnspent = document.getElementById('tabUnspent');
+
+    let lbTimer = 0;
+    function stopLB(){ if(lbTimer) clearInterval(lbTimer); lbTimer=0; }
+
+    async function renderLB(url){
+      lbPanel.innerHTML = '<div class="lb-empty">Caricamento…</div>';
+      try{
+        const res = await fetch(API_ORIGIN + url, { cache:'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        if(!Array.isArray(data) || data.length===0){
+          lbPanel.innerHTML = '<div class="lb-empty">Nessun dato.</div>';
+          return;
+        }
+        const rows = data.map((r,i)=>`
+          <tr>
+            <td class="lb-rank">${String(i+1).padStart(2,'0')}</td>
+            <td class="lb-user">${(r.username||'Utente')}</td>
+            <td class="lb-pts">${Number(r.points||0)}</td>
+          </tr>`).join('');
+        lbPanel.innerHTML = `
+          <table class="lb-table" aria-label="classifica">
+            <thead><tr><th>#</th><th>Utente</th><th style="text-align:right">Punti</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }catch(e){
+        lbPanel.innerHTML = '<div class="lb-err">Errore nel caricamento.</div>';
       }
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+    function activateLB(tabBtn){
+      [tabTop, tabUnspent].forEach(b=>b.classList.remove('is-active'));
+      tabBtn.classList.add('is-active');
+      const title = tabBtn.getAttribute('data-title') || '';
+      const url   = tabBtn.getAttribute('data-url') || '/api/leaderboard/top';
+      lbTitle.textContent = title;
+      renderLB(url);
+      stopLB();
+      lbTimer = setInterval(()=>renderLB(url), 60000);
     }
+
+    tabTop.addEventListener('click', ()=> activateLB(tabTop));
+    tabUnspent.addEventListener('click', ()=> activateLB(tabUnspent));
+    activateLB(tabTop);
   </script>
 </body>
 </html>
