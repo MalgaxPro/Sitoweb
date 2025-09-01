@@ -127,7 +127,6 @@ const API_BASE    = 'https://api.malgax.com';
 const ME_ENDPOINT = '/me';
 const ADMIN_LOGIN = 'malgax';
 
-// Endpoints backend (modificabili se usi percorsi diversi)
 const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';          // GET lista
 const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete'; // POST {id, done}
 
@@ -193,8 +192,8 @@ tabs.addEventListener('click', (e)=>{
 function buildParams(){
   return {
     limit: Number(fLimit.value||100)||100,
-    kind: currentKind,            // filtro per tab
-    status: fStatus.value||'all', // all | pending | done
+    kind: currentKind,
+    status: fStatus.value||'all',
     user: (fUser.value||'').trim()||undefined,
     item: (fItem.value||'').trim()||undefined,
     from: fFrom.value ? new Date(fFrom.value).toISOString() : undefined,
@@ -256,7 +255,6 @@ function renderTable(items){
     fr.appendChild(tr);
   }
   rows.appendChild(fr);
-  // abilita pulsanti in base allo stato admin
   rows.querySelectorAll('button.btn-done').forEach(b=> b.disabled = b.disabled || !isAdmin);
   rows.querySelectorAll('input.rowchk').forEach(c=> c.disabled = c.disabled || !isAdmin);
   chkAll.checked = false;
@@ -272,7 +270,6 @@ async function markDoneOne(id){
       body:JSON.stringify({ id, done:true })
     });
     if(!res.ok) throw new Error('HTTP '+res.status);
-    // Aggiorna localmente
     const row=dataCache.find(x=>String(x.id)===String(id));
     if(row){ row.done=true; }
     renderTable(dataCache);
@@ -284,7 +281,6 @@ async function markDoneOne(id){
 async function markDoneSelected(){
   const ids=[...rows.querySelectorAll('input.rowchk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ toast('Seleziona almeno una riga','warn'); return; }
-  // invii sequenziali semplici; se vuoi, si può ottimizzare in batch lato server
   for(const id of ids){ await markDoneOne(id); }
 }
 
