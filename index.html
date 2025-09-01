@@ -352,6 +352,28 @@
     const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
+    // Protezione mirata: impedisce che link non voluti verso l'API rimpiazzino l'homepage
+    document.addEventListener('DOMContentLoaded', () => {
+      // Rendi sicuro il link di fallback (apre in nuova scheda)
+      const ll = document.getElementById('loginLink');
+      if (ll) { ll.setAttribute('target','_blank'); ll.setAttribute('rel','noopener noreferrer'); }
+
+      // Per ogni altro link che punta a /auth o /logout, blocca la navigazione della pagina
+      document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
+        if (a.id === 'loginLink') return; // lascia il fallback intatto
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const href = a.getAttribute('href') || '';
+          if (href.includes('/logout')) {
+            openPopup(LOGOUT_URL);
+          } else {
+            openPopup(LOGIN_URL);
+          }
+        }, { capture: true });
+      });
+    });
+
     // --- Hard intercept of any auth/logout navigation to keep the main page on www.malgax.com
     const API_ORIGIN_SAFE = (typeof API_ORIGIN === 'string' && API_ORIGIN) || 'https://api.malgax.com';
     function isAuthHref(href){
@@ -702,84 +724,20 @@ updateUserPill();
     const invBody   = document.getElementById('invBody');
     const invClose  = document.getElementById('invClose');
 
-    
     async function loadInventory(){
       invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
       try{
-        // Controlla login
-        const meRes = await fetch(`${API_ORIGIN}/me`, { credentials:'include', cache:'no-store' });
-        if(!meRes.ok){
+        // Non esiste un endpoint inventario utente nel server.js minimo: mostriamo messaggio neutro
+        const me = await fetch(`${API_ORIGIN}/me`, { credentials:'include' }).then(r=>r.ok?r.json():null).catch(()=>null);
+        if(!me){
           invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch per vedere l’inventario.</div>';
           return;
         }
-        const me = await meRes.json().catch(()=>null);
-        // Carica inventario
-        const r = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
-        if(r.status === 401){ invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch per vedere l’inventario.</div>'; return; }
-        if(!r.ok){ invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>'; return; }
-        const items = await r.json().catch(()=>[]);
-        if(!Array.isArray(items) || !items.length){
-          invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
-          return;
-        }
-        const grid = document.createElement('div');
-        grid.className = 'inv-grid';
-        items.forEach(it => {
-          const id = it.item_id || it.id;
-          const card = document.createElement('div');
-          card.className = 'inv-card';
-          card.innerHTML = `
-            <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
-            <div class="inv-info">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                <div style="font-weight:800">${it.name}</div>
-                <div class="inv-q" id="q${id}">x${it.quantity||0}</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between">
-                <span class="badge">${(it.kind||'').toString()}</span>
-              </div>
-            </div>
-            <div class="inv-actions">
-              <button class="inv-btn inv-use" data-id="${id}" ${ (it.quantity||0) <= 0 ? 'disabled':'' }>Usa</button>
-              <button class="inv-btn inv-use" data-id="${id}" data-step="1" ${ (it.quantity||0) <= 0 ? 'disabled':'' }>-1</button>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-        invBody.innerHTML = '';
-        invBody.appendChild(grid);
+        invBody.innerHTML = '<div class="inv-empty">Inventario non disponibile al momento.</div>';
       }catch(e){
         invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
       }
     }
-
-    // Delegation: click sui pulsanti "Usa"
-    invBody.addEventListener('click', async (e)=>{
-      const b = e.target.closest('.inv-use'); if(!b) return;
-      const id = Number(b.dataset.id);
-      const step = Number(b.dataset.step||'1') || 1;
-      b.disabled = true;
-      try{
-        const r = await fetch(`${API_ORIGIN}/inventory/use`, {
-          method:'POST', credentials:'include',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ item_id:id, quantity:step })
-        });
-        const j = await r.json().catch(()=>({}));
-        if(!r.ok){ throw new Error(j.error || 'use_failed'); }
-        const qEl = document.getElementById('q'+id);
-        if(qEl){
-          const cur = Number((qEl.textContent||'0').replace(/^x/,'') ) || 0;
-          const nv = Math.max(0, cur - step);
-          qEl.textContent = 'x'+nv;
-        }
-      }catch(err){
-        // opzionale: toast
-      }finally{
-        b.disabled = false;
-      }
-    });
-
     function openInventory(){ invMask.style.display = 'block'; invDrawer.classList.add('open'); invDrawer.setAttribute('aria-hidden','false'); loadInventory(); }
     function closeInventory(){ invMask.style.display = 'none'; invDrawer.classList.remove('open'); invDrawer.setAttribute('aria-hidden','true'); }
     invToggle.addEventListener('click', openInventory);
