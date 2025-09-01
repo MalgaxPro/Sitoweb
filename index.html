@@ -601,10 +601,25 @@
     }
     loadAndRenderItems();
 
-    // Il backend non ha (ancora) /shop/purchase: non rompiamo l’UI
+    // Compra direttamente dall'anteprima
     document.getElementById('viewerBuy').addEventListener('click', async ()=>{
       if(!CURRENT_ITEM){ alert('Seleziona una carta.'); return; }
-      alert('Lo shop non è attivo in questa versione.');
+      // forza login se necessario
+      const me = await fetch(API_ORIGIN + '/me', { credentials:'include' }).then(r=>r.ok?r.json():null).catch(()=>null);
+      if(!me){
+        try{ authWin = window.open(LOGIN_URL,'auth','width=640,height=760'); }catch(_){}
+        return;
+      }
+      const body = { item_id: CURRENT_ITEM.id, quantity: 1 };
+      const res = await fetch(API_ORIGIN + '/shop/purchase', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': String(Date.now()) + '-' + Math.random().toString(16).slice(2) },
+        body: JSON.stringify(body)
+      });
+      const j = await res.json().catch(()=>({}));
+      if(!res.ok){ alert('Errore: ' + (j.error||'purchase_failed')); return; }
+      alert('Acquistato: ' + (CURRENT_ITEM.name||'carta'));
+      try{ document.getElementById('userUnspent').textContent = j.unspent_after; }catch(_){}
     });
     document.getElementById('viewerClose').addEventListener('click', ()=> {
       document.querySelector('.viewer-mask').style.display='none';
