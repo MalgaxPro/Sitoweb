@@ -348,8 +348,8 @@
 
   <script>
     const API_ORIGIN="https://api.malgax.com";
-    const LOGIN_URL =API_ORIGIN+"/auth/twitch?popup=1";
-    const LOGOUT_URL=API_ORIGIN+"/logout?popup=1";
+    const LOGIN_URL = API_ORIGIN + "/auth/twitch?popup=1&return_to=" + encodeURIComponent(location.href);
+    const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
     const btnAuth=document.getElementById('btnAuth');
@@ -385,7 +385,7 @@
 
     function renderPill(me){
       if(!me){ pillEl.style.display='none'; return; }
-      const username = me.username || me.user || me.twitch_username || 'Utente';
+      const username = me.login || me.username || me.user || me.twitch_username || 'Utente';
       const unspent  = (typeof me.unspent_points === 'number') ? me.unspent_points
                     : (typeof me.points === 'number') ? me.points : 0;
       pillNameEl.textContent = username;
@@ -403,7 +403,7 @@
     }
     async function updateUserPill(){
       const me = await fetchMe();
-      if(me && (me.username || me.user || me.twitch_username)){ renderPill(me); }
+      if(me && (me.login || me.username || me.user || me.twitch_username)){ renderPill(me); }
       else { pillEl.style.display = 'none'; loggedIn=false; setUI(); }
     }
     async function waitForLoginAndClose(timeoutMs=15000){
@@ -543,6 +543,15 @@
       return fig;
     }
 
+    // normalizza la tipologia lato client per supportare sia 'creature/incantesimo/istantanea' sia 'creature/spell/instant'
+    function normalizeKind(k){
+      const s = String(k||'').toLowerCase();
+      if (s.includes('crea')) return 'creature';
+      if (s.includes('incan') || s.includes('spell')) return 'incantesimo';
+      if (s.includes('istan') || s.includes('insta') || s.includes('instant')) return 'istantanea';
+      return s;
+    }
+
     async function loadAndRenderItems(){
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
         if(!el) return;
@@ -557,15 +566,20 @@
 
       let items=[];
       try{
-        const r = await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' });
-        if(r.ok) items = await r.json();
-      }catch(_){}
+        // ✅ usa l’endpoint reale del server: /inventory → { items: [...] }
+        const r = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
+        if(r.ok){
+          const j = await r.json();
+          items = Array.isArray(j) ? j : (j.items || []);
+        }
+      }catch(_) {}
 
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
 
-      const creatures = items.filter(i=>i.kind==='creature');
-      const spells    = items.filter(i=>i.kind==='spell');
-      const instants  = items.filter(i=>i.kind==='instant');
+      // separa per tipo normalizzato
+      const creatures = items.filter(i=>normalizeKind(i.kind)==='creature');
+      const spells    = items.filter(i=>normalizeKind(i.kind)==='incantesimo');
+      const instants  = items.filter(i=>normalizeKind(i.kind)==='istantanea');
 
       const c2 = creatures.filter(i=>Number(i.cost_points)===2);
       const c3 = creatures.filter(i=>Number(i.cost_points)===3);
@@ -587,24 +601,10 @@
     }
     loadAndRenderItems();
 
+    // Il backend non ha (ancora) /shop/purchase: non rompiamo l’UI
     document.getElementById('viewerBuy').addEventListener('click', async ()=>{
       if(!CURRENT_ITEM){ alert('Seleziona una carta.'); return; }
-      try{
-        const r = await fetch(`${API_ORIGIN}/shop/purchase`, {
-          method:'POST', credentials:'include',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ item_id: CURRENT_ITEM.id, quantity: 1 })
-        });
-        if(r.status === 401){
-          openPopup(LOGIN_URL);
-          await waitForLoginAndClose(15000);
-          return;
-        }
-        const j = await r.json();
-        if(!r.ok){ throw new Error(j.error||'purchase_failed'); }
-        alert(`Acquisto riuscito: ${CURRENT_ITEM.name} (-${CURRENT_ITEM.cost_points} punti)`);
-        updateUserPill();
-      }catch(e){ alert('Errore acquisto: ' + e.message); }
+      alert('Lo shop non è attivo in questa versione.');
     });
     document.getElementById('viewerClose').addEventListener('click', ()=> {
       document.querySelector('.viewer-mask').style.display='none';
@@ -621,67 +621,13 @@
     async function loadInventory(){
       invBody.innerHTML = '<div class="inv-empty">Caricamento…</div>';
       try{
-        const res = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
-        if(res.status === 401){
-          invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch.<br><br><button class="viewer-btn" id="invLoginBtn">Accedi</button></div>';
-          const b = document.getElementById('invLoginBtn');
-          if(b) b.addEventListener('click', ()=>openPopup && openPopup(LOGIN_URL));
+        // Non esiste un endpoint inventario utente nel server.js minimo: mostriamo messaggio neutro
+        const me = await fetch(`${API_ORIGIN}/me`, { credentials:'include' }).then(r=>r.ok?r.json():null).catch(()=>null);
+        if(!me){
+          invBody.innerHTML = '<div class="inv-empty">Devi accedere con Twitch per vedere l’inventario.</div>';
           return;
         }
-        let data = await res.json();
-        data = Array.isArray(data) ? data.filter(it => Number(it.quantity) > 0) : [];
-        if(!data.length){
-          invBody.innerHTML = '<div class="inv-empty">Inventario vuoto.</div>';
-          return;
-        }
-        const grid = document.createElement('div');
-        grid.className = 'inv-grid';
-        data.forEach(it=>{
-          const card = document.createElement('div');
-          card.className = 'inv-card';
-          card.innerHTML = `
-            <div class="inv-thumb"><img src="${it.image_url}" alt="${it.name}"></div>
-            <div class="inv-info"><span>${it.name}</span><span class="inv-q" data-q="${it.quantity}">x${it.quantity}</span></div>
-            <div class="inv-actions"><button class="inv-btn inv-use" type="button">Usa</button></div>
-          `;
-          const useBtn = card.querySelector('.inv-use');
-          const qEl    = card.querySelector('.inv-q');
-          useBtn.addEventListener('click', async ()=>{
-            useBtn.disabled = true;
-            try{
-              const r = await fetch(`${API_ORIGIN}/inventory/use`, {
-                method:'POST', credentials:'include',
-                headers:{ 'Content-Type':'application/json' },
-                body: JSON.stringify({ item_id: it.item_id, quantity: 1 })
-              });
-              if(r.status === 401){
-                openPopup(LOGIN_URL);
-                await waitForLoginAndClose(15000);
-                useBtn.disabled = false;
-                return;
-              }
-              const j = await r.json();
-              if(!r.ok){ throw new Error(j.error||'use_failed'); }
-              const cur = parseInt(qEl.getAttribute('data-q'), 10) || 0;
-              const nxt = Math.max(0, cur - 1);
-              qEl.setAttribute('data-q', String(nxt));
-              qEl.textContent = 'x' + nxt;
-              if(nxt === 0){
-                card.style.opacity = '.6';
-                card.style.transition = 'opacity .2s ease, transform .2s ease';
-                card.style.transform = 'scale(.98)';
-                setTimeout(()=> card.remove(), 180);
-              }
-            }catch(e){
-              alert('Errore uso: ' + e.message);
-            }finally{
-              useBtn.disabled = false;
-            }
-          });
-          grid.appendChild(card);
-        });
-        invBody.innerHTML = '';
-        invBody.appendChild(grid);
+        invBody.innerHTML = '<div class="inv-empty">Inventario non disponibile al momento.</div>';
       }catch(e){
         invBody.innerHTML = '<div class="inv-empty">Errore nel caricamento.</div>';
       }
@@ -706,8 +652,9 @@
       try{
         const res = await fetch(API_ORIGIN + url, { cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        if(!Array.isArray(data) || data.length===0){
+        const payload = await res.json();
+        const data = Array.isArray(payload) ? payload : (payload.items || []);
+        if(!data.length){
           lbPanel.innerHTML = '<div class="lb-empty">Nessun dato.</div>';
           return;
         }
@@ -715,7 +662,7 @@
           <tr>
             <td class="lb-rank">${String(i+1).padStart(2,'0')}</td>
             <td class="lb-user">${(r.username||'Utente')}</td>
-            <td class="lb-pts">${Number(r.points||0)}</td>
+            <td class="lb-pts">${Number(r.total_points ?? r.unspent_points ?? r.points ?? 0)}</td>
           </tr>`).join('');
         lbPanel.innerHTML = `
           <table class="lb-table" aria-label="classifica">
