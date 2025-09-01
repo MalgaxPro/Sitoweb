@@ -721,13 +721,13 @@ updateUserPill();
     invToggle.addEventListener('click', openInventory);
     invClose .addEventListener('click', closeInventory);
     invMask  .addEventListener('click', closeInventory);
-
-    // Azione inventario: usa carta (quantity = 1); se scende a 0, rimuovi la card
+    // Usa carta dall'inventario (qty=1); se scende a 0 viene rimossa dalla lista
     invBody.addEventListener('click', async (e) => {
-      const btn = e.target.closest && e.target.closest('.inv-use');
-      if(!btn) return;
-      const id = Number(btn.dataset.id);
-      btn.disabled = true;
+      const b = e.target.closest && e.target.closest('.inv-use');
+      if(!b) return;
+      const id = Number(b.dataset.id);
+      if(!Number.isFinite(id) || id<=0) return;
+      b.disabled = true;
       try{
         const res = await fetch(`${API_ORIGIN}/inventory/use`, {
           method:'POST',
@@ -751,9 +751,9 @@ updateUserPill();
           }
         }
       }catch(_){ /* opzionale: toast */ }
-      finally{ if(!btn.isConnected) return; btn.disabled = false; }
+      finally{ if(b && b.isConnected) b.disabled = false; }
     });
-
+    
 
     /* ======= CLASSIFICHE A TAB (refresh 60s) ======= */
     const lbPanel = document.getElementById('lbPanel');
