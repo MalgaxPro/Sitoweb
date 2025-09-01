@@ -352,6 +352,16 @@
     const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
+    function notify(msg){
+      const n=document.createElement('div');
+      n.textContent=msg;
+      n.style.position='fixed';n.style.top='16px';n.style.left='50%';n.style.transform='translateX(-50%)';
+      n.style.background='rgba(20,20,28,.95)';n.style.color='#e9e9f4';n.style.padding='10px 14px';n.style.border='1px solid rgba(255,255,255,.15)';
+      n.style.borderRadius='10px';n.style.zIndex='9999';n.style.font='600 14px system-ui,Segoe UI,Roboto,Arial';
+      document.body.appendChild(n);
+      setTimeout(()=>{ try{ n.remove(); }catch(_){ } }, 1800);
+    }
+
     const btnAuth=document.getElementById('btnAuth');
     const btnEarn=document.getElementById('btnEarn');
     const mask=document.getElementById('mask');
@@ -365,7 +375,7 @@
       const l=window.screenLeft??screen.left, t=window.screenTop??screen.top;
       const W=window.innerWidth||document.documentElement.clientWidth||screen.width;
       const H=window.innerHeight||document.documentElement.clientHeight||screen.height;
-      return `scrollbars=yes,width=${w},height=${h},top=${t+Math.max(0,(H-h)/2)},left=${l+Math.max(0,(W-w)/2)}`;
+      return `scrollbars=yes,noopener=yes,noreferrer=yes,width=${w},height=${h},top=${t+Math.max(0,(H-h)/2)},left=${l+Math.max(0,(W-w)/2)}`;
     }
     function showModal(v){ mask.style.display=v?'block':'none'; modal.style.display=v?'flex':'none'; modal.setAttribute('aria-hidden',v?'false':'true'); }
     function openPopup(url){
@@ -440,15 +450,29 @@
     });
     btnEarn.addEventListener('click', openGiftPopup);
 
+    
     window.addEventListener('message',(ev)=>{
+      // accetta solo messaggi dall'API
       if(ev.origin !== API_ORIGIN) return;
-      const d=ev.data||{};
-      if(d.type==='me'){ renderPill(d.me); }
-      if(d.type==='login'){ loggedIn=true; setUI(); try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); updateUserPill(); }
-      if(d.type==='logout'){ loggedIn=false; setUI(); pillEl.style.display='none'; try{ if(authWin&&!authWin.closed) authWin.close(); }catch(e){} showModal(false); }
+      const d = ev.data || {};
+      if(d.type === 'me'){ renderPill(d.me); return; }
+      if(d.type === 'login'){
+        loggedIn = true; setUI();
+        try{ if(authWin && !authWin.closed) authWin.close(); }catch(_){}
+        showModal(false);
+        updateUserPill();
+        return;
+      }
+      if(d.type === 'logout'){
+        loggedIn = false; setUI();
+        pillEl.style.display = 'none';
+        try{ if(authWin && !authWin.closed) authWin.close(); }catch(_){}
+        showModal(false);
+        try{ notify('Logout effettuato con successo'); }catch(_){}
+        return;
+      }
     });
-
-    updateUserPill();
+updateUserPill();
 
     /* ======= Tabs Champions ======= */
     (function(){
