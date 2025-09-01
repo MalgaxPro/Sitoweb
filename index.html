@@ -352,28 +352,6 @@
     const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
-    // Protezione mirata: impedisce che link non voluti verso l'API rimpiazzino l'homepage
-    document.addEventListener('DOMContentLoaded', () => {
-      // Rendi sicuro il link di fallback (apre in nuova scheda)
-      const ll = document.getElementById('loginLink');
-      if (ll) { ll.setAttribute('target','_blank'); ll.setAttribute('rel','noopener noreferrer'); }
-
-      // Per ogni altro link che punta a /auth o /logout, blocca la navigazione della pagina
-      document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
-        if (a.id === 'loginLink') return; // lascia il fallback intatto
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const href = a.getAttribute('href') || '';
-          if (href.includes('/logout')) {
-            openPopup(LOGOUT_URL);
-          } else {
-            openPopup(LOGIN_URL);
-          }
-        }, { capture: true });
-      });
-    });
-
     // --- Hard intercept of any auth/logout navigation to keep the main page on www.malgax.com
     const API_ORIGIN_SAFE = (typeof API_ORIGIN === 'string' && API_ORIGIN) || 'https://api.malgax.com';
     function isAuthHref(href){
@@ -451,7 +429,7 @@
     function openPopup(url){
       showModal(true);
       authWin=window.open(url,'authPopup',centerSpecs(640,760));
-      if(!authWin||authWin.closed){ showModal(false); location.href=url.replace('?popup=1',''); return; }
+      if(!authWin||authWin.closed){ try{ loginLink.href = url.replace('?popup=1',''); }catch(_){} /* popup bloccato: lascia il modal aperto */ return; }
       monitor=setInterval(()=>{ if(authWin.closed){ clearInterval(monitor); showModal(false); } },300);
     }
     function openGiftPopup(){
