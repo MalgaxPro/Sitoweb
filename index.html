@@ -380,6 +380,18 @@
     });
 
     // Scrub existing anchors on DOM ready
+
+    // Scrub existing anchors on DOM ready (force href="#")
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
+        a.dataset.originalHref = a.getAttribute('href') || '';
+        a.setAttribute('href', '#');
+        a.setAttribute('target','_blank');
+        a.setAttribute('rel','noopener noreferrer');
+        a.addEventListener('click', (e)=>{ e.preventDefault(); interceptAnchor(e); }, {capture:true});
+      });
+    });
+    
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
         a.setAttribute('target','_blank');
@@ -627,11 +639,8 @@ updateUserPill();
       let items=[];
       try{
         // ✅ usa l’endpoint reale del server: /inventory → { items: [...] }
-        const r = await fetch(`${API_ORIGIN}/inventory`, { credentials:'include', cache:'no-store' });
-        if(r.ok){
-          const j = await r.json();
-          items = Array.isArray(j) ? j : (j.items || []);
-        }
+        const r = await fetch(`${API_ORIGIN}/shop/items`, { credentials:'include', cache:'no-store' });
+        if(r.ok){ items = await r.json(); }
       }catch(_) {}
 
       [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
