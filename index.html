@@ -352,7 +352,44 @@
     const LOGOUT_URL= API_ORIGIN + "/logout?popup=1&return_to=" + encodeURIComponent(location.href);
 
     /* ======= Login popup / pill ======= */
-});
+    // --- Hard intercept of any auth/logout navigation to keep the main page on www.malgax.com
+    const API_ORIGIN_SAFE = (typeof API_ORIGIN === 'string' && API_ORIGIN) || 'https://api.malgax.com';
+    function isAuthHref(href){
+      if(!href) return false;
+      try{
+        const u = new URL(href, location.href);
+        if (u.origin === API_ORIGIN_SAFE && (u.pathname.startsWith('/auth/') || u.pathname === '/logout')) return true;
+      }catch(_){}
+      return href.includes('/auth/') || href.includes('/logout');
+    }
+
+    function interceptAnchor(ev){
+      const a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+      if(!a) return;
+      const href = a.getAttribute('href') || '';
+      if(!isAuthHref(href)) return;
+      ev.preventDefault();
+      ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+      ev.stopPropagation && ev.stopPropagation();
+      const url = href.includes('/logout') ? LOGOUT_URL : LOGIN_URL;
+      openPopup(url);
+    }
+
+    ['click','auxclick','mousedown','mouseup','pointerup','touchstart'].forEach(type => {
+      window.addEventListener(type, interceptAnchor, true); // capture first
+    });
+
+    // Scrub existing anchors on DOM ready
+
+    // Scrub existing anchors on DOM ready (force href="#")
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('a[href*="/auth/"], a[href*="/logout"]').forEach(a => {
+        a.dataset.originalHref = a.getAttribute('href') || '';
+        a.setAttribute('href', '#');
+        a.setAttribute('target','_blank');
+        a.setAttribute('rel','noopener noreferrer');
+        a.addEventListener('click', (e)=>{ e.preventDefault(); interceptAnchor(e); }, {capture:true});
+      });
     });
     
     document.addEventListener('DOMContentLoaded', () => {
