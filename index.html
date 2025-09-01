@@ -4,131 +4,99 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Malgax — No Udyr challenge</title>
-  <meta name="description" content="No Udyr challenge — Accedi, vedi le carte e la classifica punti delle sub sul canale di Malgax." />
+  <meta name="description" content="No Udyr challenge — Accedi con Twitch, vedi le carte e la classifica punti." />
   <style>
     :root{
       --twitch:#6441a5; --bg:#0f0f14; --card:#16161f; --text:#f4f4f7; --muted:#a4a4b5; --line:#2a2a36;
-      --cols-desktop: 5; --cols-tablet: 4; --cols-mobile: 2;
-      --gap: 8px; --ratio-w: 2; --ratio-h: 3;
+      --cols-desktop: 5; --cols-tablet: 4; --cols-mobile: 2; --gap: 8px;
     }
     *{box-sizing:border-box}
     html,body{min-height:100%}
-    body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(1200px 800px at 10% -10%, #1d1540 0%, #0f0f14 50%) no-repeat, var(--bg);
-      color:var(--text);
-      overflow-x:hidden;
-    }
-    /* HERO */
-    .hero{
-      width:100%;
-      background:
-        radial-gradient(800px 300px at 50% 0%, rgba(100,65,165,.25), rgba(0,0,0,0) 70%),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.0));
-      border-bottom:1px solid rgba(255,255,255,.08);
-      padding:22px 24px 14px;
-    }
-    .hero-inner{ max-width:1600px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    .hero-title{ margin:0; font-size: clamp(22px, 3vw, 34px); letter-spacing:.3px; font-weight:800; display:flex; align-items:center; gap:10px; text-shadow: 0 2px 20px rgba(100,65,165,.35); }
-    .hero-actions{ display:flex; align-items:center; gap:10px; }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    /* Hero */
+    .hero{background:
+      radial-gradient(900px 360px at 40% -10%, rgba(100,65,165,.25), rgba(0,0,0,0) 70%),
+      linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0));
+      border-bottom:1px solid rgba(255,255,255,.08);padding:18px 24px}
+    .hero-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .hero-title{margin:0;font-size: clamp(22px, 3vw, 34px);font-weight:800}
+    .hero-actions{display:flex;align-items:center;gap:10px}
     /* Buttons / pill */
-    .btn{ appearance:none; border:0; cursor:pointer; user-select:none; padding:10px 14px; border-radius:10px; font-weight:700; background:var(--twitch); color:#fff; transition: transform .15s ease; }
-    .btn:active{ transform: translateY(1px) }
-    .hero-login{ padding:8px 12px; }
-    .user-pill{ display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:999px; font-weight:700; color:#e9e9ff; }
-    .user-name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .coin-icon{ width:14px; height:14px; border-radius:50%; display:inline-block; background: radial-gradient(90% 90% at 30% 30%, #fff4a6 0%, #ffd94d 35%, #e0a300 60%, #b07b00 100%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.35); }
-    .user-unspent{ font-variant-numeric: tabular-nums; }
-    /* Earn */
+    .btn{appearance:none;border:0;cursor:pointer;padding:10px 14px;border-radius:10px;font-weight:700;background:var(--twitch);color:#fff}
+    .btn.gray{background:#3a415a}
     .btn-earn{
       background: linear-gradient(90deg,#ffe066,#ffbf00,#ffe066);
       background-size: 200% 100%; color:#1a1200; text-shadow: 0 1px 0 rgba(255,255,255,.4);
       box-shadow: 0 0 0 2px rgba(0,0,0,.2) inset, 0 6px 14px rgba(255,200,0,.35), 0 0 18px rgba(255,220,80,.35);
       animation: shine 3s linear infinite, pulse 2.4s ease-in-out infinite; position:relative; overflow:hidden;
     }
-    .btn-earn::after{ content:""; position:absolute; inset:-2px; background: radial-gradient(180px 40px at -20% 50%, rgba(255,255,255,.45), transparent 60%); transform: translateX(-120%); animation: sweep 2.6s ease-in-out infinite 0.6s; pointer-events:none; }
+    .btn-earn::after{ content:""; position:absolute; inset:-2px; background: radial-gradient(180px 40px at -20% 50%, rgba(255,255,255,.45), transparent 60%); transform: translateX(-120%); animation: sweep 2.6s ease-in-out infinite .6s; pointer-events:none; }
     @keyframes shine{ 0%{background-position:0% 0} 100%{background-position:200% 0} }
     @keyframes pulse{ 0%,100%{ transform:scale(1)} 50%{ transform:scale(1.04)} }
     @keyframes sweep{ 0%,60%{ transform: translateX(-120%) } 100%{ transform: translateX(140%) } }
+    .user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;font-weight:700}
+    .user-name{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     /* Layout */
-    .page{ width:100%; max-width:1600px; margin:18px auto; padding:0 24px; display:grid; grid-template-columns: 60% 40%; gap:24px; align-items:start; }
-    @media (max-width:1100px){ .page{ grid-template-columns:1fr } }
-    .column{ display:flex; flex-direction:column; gap:16px }
-    .card{ background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.25); overflow:hidden }
-    .panel{ padding:18px }
-    .muted{ color:var(--muted); font-size:14px; line-height:1.55 }
-    .title{ font-size:20px; margin:0 }
-    /* Left “shop” */
-    .left-card{ background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; box-shadow:0 10px 28px rgba(0,0,0,.35) }
-    .cat{ margin-bottom:18px; background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:14px }
-    .cat-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px }
-    .cat-title{ margin:0; font-size:16px; color:#eaeaf0; display:flex; align-items:center; gap:10px; }
-    .cat-emoji{ font-size:18px }
-    .cat-line{ height:1px; background:var(--line); flex:1; border-radius:1px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.02) }
-    .tabs{ display:flex; gap:10px; padding:10px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.06); }
-    .tab{ padding:8px 12px; border-radius:10px; font-weight:700; font-size:14px; background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10); cursor:pointer; }
-    .tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55); box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
-    .cards-row{ display:grid; gap: var(--gap); grid-template-columns: repeat(var(--cols-desktop), 1fr); }
-    @media (max-width:980px){ .cards-row{ grid-template-columns: repeat(var(--cols-tablet), 1fr) } }
-    @media (max-width:620px){ .cards-row{ grid-template-columns: repeat(var(--cols-mobile), 1fr) } }
-    .card-item{ position:relative; aspect-ratio: calc(var(--ratio-w) / var(--ratio-h)); background:#0c0c12; border:1px solid rgba(255,255,255,.12); border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:0; min-height: 180px; transition: transform .2s ease; }
-    .card-item:hover{ transform: translateY(-2px) }
-    .card-item img{ width:100%; height:100%; object-fit:contain; display:block; image-rendering:auto; }
+    .page{width:100%;max-width:1600px;margin:18px auto;padding:0 24px;display:grid;grid-template-columns:60% 40%;gap:24px}
+    @media (max-width:1100px){ .page{grid-template-columns:1fr} }
+    .card{background:#16161f;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+    .panel{padding:16px}
+    .title{font-size:18px;margin:0 0 8px}
+    .muted{color:var(--muted)}
+    /* Carte */
+    .left-card{background:linear-gradient(135deg, rgba(100,65,165,.18), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px}
+    .cat{margin-bottom:18px;background:#14141c;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px}
+    .cat-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .cat-title{margin:0;font-size:16px}
+    .cat-line{height:1px;background:var(--line);flex:1}
+    .tabs{display:flex;gap:10px;padding:10px;background:#14141c;border-bottom:1px solid rgba(255,255,255,.06)}
+    .tab{padding:8px 12px;border-radius:10px;font-weight:700;font-size:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);cursor:pointer}
+    .tab.is-active{background:rgba(100,65,165,.25);border-color:rgba(100,65,165,.55);box-shadow:0 0 0 3px rgba(100,65,165,.15) inset}
+    .cards-row{display:grid;gap:var(--gap);grid-template-columns:repeat(var(--cols-desktop),1fr)}
+    @media (max-width:980px){ .cards-row{grid-template-columns:repeat(var(--cols-tablet),1fr)} }
+    @media (max-width:620px){ .cards-row{grid-template-columns:repeat(var(--cols-mobile),1fr)} }
+    .card-item{position:relative;aspect-ratio: 2/3;background:#0c0c12;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:180px}
+    .card-item img{width:100%;height:100%;object-fit:contain;display:block}
     /* Leaderboard */
-    .lb-card{ background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:24px; overflow:hidden; box-shadow:0 10px 28px rgba(0,0,0,.35); }
-    .lb-tabs{ display:flex; gap:10px; padding:10px; background:#14141c; border-bottom:1px solid rgba(255,255,255,.06); }
-    .lb-tab{ padding:8px 12px; border-radius:10px; font-weight:800; font-size:14px; background:rgba(255,255,255,.06); color:#eaeaf0; border:1px solid rgba(255,255,255,.10); cursor:pointer; }
-    .lb-tab.is-active{ background:rgba(100,65,165,.25); border-color: rgba(100,65,165,.55); box-shadow:0 0 0 3px rgba(100,65,165,.15) inset; }
-    .lb-head{ padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; }
-    .lb-title{ margin:0; font-size:16px; font-weight:800 }
-    .lb-refresh{ font-size:13px; color:var(--muted) }
-    .lb-panel{ padding:12px 16px 16px; }
-    .lb-table{ width:100%; border-collapse:collapse; }
-    .lb-table th, .lb-table td{ padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,.06); }
-    .lb-table th{ font-size:13px; color:#d6d6e8; letter-spacing:.2px; }
-    .lb-rank{ width:70px; color:#cfcff0; font-variant-numeric:tabular-nums; }
-    .lb-user{ font-weight:700 }
-    .lb-pts{ text-align:right; font-variant-numeric:tabular-nums; }
-    .lb-empty, .lb-err{ padding:14px; color:var(--muted); }
+    .lb-tabs{display:flex;gap:10px;padding:10px;background:#14141c;border-bottom:1px solid rgba(255,255,255,.06)}
+    .lb-tab{padding:8px 12px;border-radius:10px;font-weight:800;font-size:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);cursor:pointer}
+    .lb-tab.is-active{background:rgba(100,65,165,.25);border-color:rgba(100,65,165,.55);box-shadow:0 0 0 3px rgba(100,65,165,.15) inset}
+    .lb-head{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}
+    .lb-title{margin:0;font-size:16px;font-weight:800}
+    .lb-panel{padding:12px 16px 16px}
+    .lb-table{width:100%;border-collapse:collapse}
+    .lb-table th,.lb-table td{padding:10px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+    .lb-rank{width:70px;color:#cfcff0;font-variant-numeric:tabular-nums}
+    .lb-user{font-weight:700}
+    .lb-pts{text-align:right;font-variant-numeric:tabular-nums}
   </style>
 </head>
 <body>
   <header class="hero">
     <div class="hero-inner">
       <h1 class="hero-title">🔥 No Udyr challenge</h1>
-      <div class="hero-actions">
-        <div id="userPill" class="user-pill" style="display:none">
-          <span id="userName" class="user-name">—</span>
-          <span class="coin-icon" aria-hidden="true"></span>
-          <span id="userUnspent" class="user-unspent">0</span>
-        </div>
-        <span id="loginBox">
-          <input id="lg" placeholder="login (es. malgax)" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:#121320;color:#fff">
-          <button id="btnLogin" class="btn hero-login" type="button">Login (dev)</button>
-        </span>
-        <button id="btnLogout" class="btn hero-login" type="button" style="display:none;background:#444">Logout</button>
+      <div class="hero-actions" id="authbar">
+        <button id="btnTwitch" class="btn" type="button">Login con Twitch</button>
         <button id="btnEarn" class="btn btn-earn" type="button" aria-label="Guadagna punti su Twitch">🪙 Guadagna punti</button>
       </div>
     </div>
   </header>
 
   <main class="page">
-    <!-- Colonna SINISTRA: CARTE -->
+    <!-- SINISTRA: CARTE -->
     <section class="left-card" aria-labelledby="left-title">
-      <h2 id="left-title" class="title" style="margin:0 0 8px">Carte</h2>
+      <h2 id="left-title" class="title">Carte</h2>
 
       <div class="cat" id="cat-creature">
         <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">🐉</span> <strong>Champions</strong></h3>
+          <h3 class="cat-title">🐉 <strong>Champions</strong></h3>
           <div class="cat-line"></div>
         </div>
-
         <nav class="tabs" role="tablist" aria-label="Champions per costo" style="margin:4px 0 10px;">
           <button class="tab is-active" role="tab" aria-selected="true" aria-controls="crea-2" data-target="crea-2">Costo 2</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-3" data-target="crea-3">Costo 3</button>
           <button class="tab" role="tab" aria-selected="false" aria-controls="crea-5" data-target="crea-5">Costo 5</button>
         </nav>
-
         <div class="cards-row" id="crea-2" role="tabpanel" aria-labelledby="Costo 2"></div>
         <div class="cards-row" id="crea-3" role="tabpanel" aria-labelledby="Costo 3" style="display:none"></div>
         <div class="cards-row" id="crea-5" role="tabpanel" aria-labelledby="Costo 5" style="display:none"></div>
@@ -136,7 +104,7 @@
 
       <div class="cat" id="cat-spell">
         <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">🪄</span> Incantesimi</h3>
+          <h3 class="cat-title">🪄 Incantesimi</h3>
           <div class="cat-line"></div>
         </div>
         <div class="cards-row" id="spellsRow"></div>
@@ -144,244 +112,233 @@
 
       <div class="cat" id="cat-instant" style="margin-bottom:0;">
         <div class="cat-head">
-          <h3 class="cat-title"><span class="cat-emoji">⚡</span> Istantanee</h3>
+          <h3 class="cat-title">⚡ Istantanee</h3>
           <div class="cat-line"></div>
         </div>
         <div class="cards-row" id="instantsRow"></div>
       </div>
     </section>
 
-    <!-- Colonna DESTRA: REGOLE + CLASSIFICHE -->
-    <section class="column">
-      <div class="card">
-        <nav class="tabs" role="tablist" aria-label="Regole della sfida">
-          <span class="tab is-active" role="tab" aria-selected="true" tabindex="0">📜 Regole</span>
-        </nav>
-        <div id="regole" class="panel" role="tabpanel" aria-labelledby="tab-regole">
-          <ul class="muted" style="margin:0; padding-left:16px">
-            <li>🪙 <strong>Punti:</strong> si guadagnano con le sub (anche regalate).</li>
-            <li>💸 <strong>Spendi:</strong> per creare combo incredibili.</li>
-            <li>❌ <strong>No Udyr</strong></li>
-            <li>🧭 <strong>Unranked → Master</strong></li>
-            <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
-          </ul>
-        </div>
+    <!-- DESTRA: REGOLE + CLASSIFICHE -->
+    <section class="card">
+      <div class="lb-tabs" role="tablist" aria-label="Seleziona">
+        <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="🏆 Top Donator" role="tab" aria-selected="true">🏆 Top Donator</button>
+        <button class="lb-tab" id="tabUnspent" data-url="/api/leaderboard/unspent" data-title="🪙 Punti non spesi" role="tab" aria-selected="false">🪙 Punti non spesi</button>
       </div>
-
-      <div class="lb-card" id="lbCard">
-        <div class="lb-tabs" role="tablist" aria-label="Seleziona classifica">
-          <button class="lb-tab is-active" id="tabTop" data-url="/api/leaderboard/top" data-title="🏆 Top Donator" role="tab" aria-selected="true">🏆 Top Donator</button>
-          <button class="lb-tab" id="tabUnspent" data-url="/api/leaderboard/unspent" data-title="🪙 Punti non spesi" role="tab" aria-selected="false">🪙 Punti non spesi</button>
-        </div>
-        <div class="lb-head">
-          <h3 class="lb-title" id="lbTitle">🏆 Top Donator</h3>
-          <div class="lb-refresh">refresh ogni 60s</div>
-        </div>
-        <div id="lbPanel" class="lb-panel"><div class="lb-empty">Caricamento…</div></div>
+      <div class="lb-head">
+        <h3 class="lb-title" id="lbTitle">🏆 Top Donator</h3>
+        <div class="muted">refresh 60s</div>
       </div>
+      <div class="panel">
+        <h3 class="title" style="margin-top:0">📜 Regole</h3>
+        <ul class="muted" style="margin:0; padding-left:16px">
+          <li>🪙 <strong>Punti:</strong> si guadagnano con le sub (anche regalate).</li>
+          <li>💸 <strong>Spendi:</strong> per creare combo incredibili.</li>
+          <li>❌ <strong>No Udyr</strong></li>
+          <li>🧭 <strong>Unranked → Master</strong></li>
+          <li>⏱️ <strong>Fine sfida:</strong> <em>30 settembre</em></li>
+        </ul>
+      </div>
+      <div id="lbPanel" class="lb-panel"><div class="muted">Caricamento…</div></div>
     </section>
   </main>
 
-  <script>
-    const API = "https://api.malgax.com";
+<script>
+const API = "https://api.malgax.com";
 
-    /* ========== LOGIN DEV (cookie) ========== */
-    const pillEl   = document.getElementById('userPill');
-    const nameEl   = document.getElementById('userName');
-    const unspEl   = document.getElementById('userUnspent');
-    const boxEl    = document.getElementById('loginBox');
-    const btnLogin = document.getElementById('btnLogin');
-    const btnLogout= document.getElementById('btnLogout');
-    const inputLg  = document.getElementById('lg');
+/* ======= AUTH: Twitch popup ======= */
+const authbar = document.getElementById('authbar');
 
-    async function api(path, opts={}) {
-      const res = await fetch(API+path, { credentials: 'include', ...opts });
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      return res.json();
-    }
-    async function fetchMe(){
-      try{ return await api('/me'); }catch{ return null; }
-    }
-    function showLogged(me){
-      const uname = me.login || me.username || me.user || 'utente';
-      nameEl.textContent = uname;
-      // se il backend mette unspent_points in /me, lo mostriamo; altrimenti 0
-      unspEl.textContent = me.unspent_points ?? me.points ?? 0;
-      pillEl.style.display = 'flex';
-      boxEl.style.display  = 'none';
-      btnLogout.style.display = 'inline-block';
-    }
-    function showGuest(){
-      pillEl.style.display = 'none';
-      boxEl.style.display  = 'inline-block';
-      btnLogout.style.display = 'none';
-    }
-    async function initAuth(){
-      const me = await fetchMe();
-      if (me) showLogged(me); else showGuest();
-    }
-    btnLogin.addEventListener('click', async ()=>{
-      const v = (inputLg.value||'').trim().toLowerCase();
-      if(!v) return inputLg.focus();
-      try{
-        await fetch(API+'/auth/dev-login', {
-          method:'POST', credentials:'include',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ login: v })
-        });
-        const me = await fetchMe();
-        if (me) showLogged(me);
-      }catch(e){ alert('Login fallito'); }
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])) }
+
+function renderLogged(login){
+  authbar.innerHTML = `
+    <span class="user-pill"><span class="user-name">${escapeHtml(login)}</span></span>
+    <button id="btnLogout" class="btn gray" type="button">Logout</button>
+    <button id="btnEarn" class="btn btn-earn" type="button">🪙 Guadagna punti</button>
+  `;
+  document.getElementById('btnLogout').onclick = () => {
+    const url = API + '/logout?return_to=' + encodeURIComponent(location.href);
+    location.href = url;
+  };
+  document.getElementById('btnEarn').onclick = () => {
+    window.open('https://www.twitch.tv/subs/malgax?gift=true', '_blank');
+  };
+}
+function renderLogin(){
+  authbar.innerHTML = `
+    <button id="btnTwitch" class="btn" type="button">Login con Twitch</button>
+    <button id="btnEarn" class="btn btn-earn" type="button">🪙 Guadagna punti</button>
+  `;
+  document.getElementById('btnTwitch').onclick = openTwitchPopup;
+  document.getElementById('btnEarn').onclick = () => {
+    window.open('https://www.twitch.tv/subs/malgax?gift=true', '_blank');
+  };
+}
+
+function openTwitchPopup(){
+  const w = 520, h = 640;
+  const y = window.top.outerHeight/2 + window.top.screenY - (h/2);
+  const x = window.top.outerWidth/2  + window.top.screenX - (w/2);
+  const url = API + '/auth/twitch?return_to=' + encodeURIComponent(location.href);
+  const win = window.open(url, 'twitch_login', `width=${w},height=${h},left=${x},top=${y}`);
+  let tries = 0;
+  const iv = setInterval(async ()=>{
+    tries++;
+    if (win && win.closed) { clearInterval(iv); checkMe(); return; }
+    if (tries > 120) { clearInterval(iv); return; } // ~2 minuti
+    try{
+      const me = await api('/me');
+      if (me && me.login) { clearInterval(iv); renderLogged(me.login); }
+    }catch{}
+  }, 1000);
+}
+
+async function api(path, opts={}) {
+  const res = await fetch(API+path, { credentials: 'include', ...opts });
+  if (!res.ok) throw new Error('HTTP '+res.status);
+  return res.json();
+}
+
+async function checkMe(){
+  try{
+    const me = await api('/me');
+    if (me && me.login) renderLogged(me.login);
+    else renderLogin();
+  }catch{
+    renderLogin();
+  }
+}
+
+/* ======= Tabs champions ======= */
+(function(){
+  const root  = document.getElementById('cat-creature');
+  if(!root) return;
+  const tabs  = root.querySelectorAll('.tabs .tab');
+  const panes = root.querySelectorAll('[role="tabpanel"]');
+  tabs.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tabs.forEach(b=>b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      panes.forEach(p=>p.style.display='none');
+      const id = btn.dataset.target;
+      const pane = root.querySelector('#'+id);
+      if(pane) pane.style.display = '';
     });
-    btnLogout.addEventListener('click', async ()=>{
-      await fetch(API+'/auth/dev-logout', { method:'POST', credentials:'include' });
-      showGuest();
+  });
+})();
+
+/* ======= Carte ======= */
+const crea2El = document.getElementById('crea-2');
+const crea3El = document.getElementById('crea-3');
+const crea5El = document.getElementById('crea-5');
+const spellsEl = document.getElementById('spellsRow');
+const instantsEl = document.getElementById('instantsRow');
+
+function makeCard(item){
+  const fig = document.createElement('figure');
+  fig.className = 'card-item';
+  fig.title = item.name;
+  const img = document.createElement('img');
+  img.src = item.image_url || '';
+  img.alt = item.name || '';
+  fig.appendChild(img);
+  return fig;
+}
+function kindKey(k){
+  const kk = String(k||'').toLowerCase();
+  if (kk.includes('crea')) return 'creature';
+  if (kk.includes('spell') || kk.includes('incan')) return 'incantesimo';
+  if (kk.includes('inst') || kk.includes('snap')) return 'istantanea';
+  return kk;
+}
+async function loadCards(){
+  // placeholder
+  [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
+    if(!el) return; el.innerHTML=''; for(let i=0;i<8;i++){ const ph=document.createElement('div'); ph.className='card-item'; ph.style.background='#0c0c12'; el.appendChild(ph); }
+  });
+  try{
+    const { items=[] } = await api('/inventory');
+    const creatures = items.filter(i=>kindKey(i.kind)==='creature');
+    const spells    = items.filter(i=>kindKey(i.kind)==='incantesimo');
+    const instants  = items.filter(i=>kindKey(i.kind)==='istantanea');
+
+    [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
+
+    const c2 = creatures.filter(i=>Number(i.cost_points)===2);
+    const c3 = creatures.filter(i=>Number(i.cost_points)===3);
+    const c5 = creatures.filter(i=>Number(i.cost_points)===5);
+
+    c2.forEach(i=>crea2El.appendChild(makeCard(i)));
+    c3.forEach(i=>crea3El.appendChild(makeCard(i)));
+    c5.forEach(i=>crea5El.appendChild(makeCard(i)));
+
+    if(!c2.length) crea2El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
+    if(!c3.length) crea3El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
+    if(!c5.length) crea5El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
+
+    if(spells.length) spells.forEach(i=>spellsEl.appendChild(makeCard(i)));
+    else spellsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
+
+    if(instants.length) instants.forEach(i=>instantsEl.appendChild(makeCard(i)));
+    else instantsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna istantanea</div>';
+  }catch(e){
+    [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
+      if(el) el.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Errore caricamento carte</div>';
     });
+  }
+}
 
-    /* ========== TABS CHAMPIONS ========== */
-    (function(){
-      const root  = document.getElementById('cat-creature');
-      if(!root) return;
-      const tabs  = root.querySelectorAll('.tabs .tab');
-      const panes = root.querySelectorAll('[role="tabpanel"]');
-      tabs.forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          tabs.forEach(b=>b.classList.remove('is-active'));
-          btn.classList.add('is-active');
-          panes.forEach(p=>p.style.display='none');
-          const id = btn.dataset.target;
-          const pane = root.querySelector('#'+id);
-          if(pane) pane.style.display = '';
-        });
-      });
-    })();
+/* ======= Classifiche ======= */
+const lbPanel = document.getElementById('lbPanel');
+const lbTitle = document.getElementById('lbTitle');
+const tabTop = document.getElementById('tabTop');
+const tabUnspent = document.getElementById('tabUnspent');
+let lbTimer = 0;
 
-    /* ========== CARTE dal backend ========== */
-    const crea2El = document.getElementById('crea-2');
-    const crea3El = document.getElementById('crea-3');
-    const crea5El = document.getElementById('crea-5');
-    const spellsEl = document.getElementById('spellsRow');
-    const instantsEl = document.getElementById('instantsRow');
+async function renderLB(url){
+  lbPanel.innerHTML = '<div class="muted">Caricamento…</div>';
+  try{
+    const json = await api(url);
+    const arr = Array.isArray(json.items) ? json.items : json;
+    if(!arr.length){ lbPanel.innerHTML = '<div class="muted">Nessun dato.</div>'; return; }
+    const rows = arr.map((r,i)=>`
+      <tr>
+        <td class="lb-rank">${String(i+1).padStart(2,'0')}</td>
+        <td class="lb-user">${(r.username||'Utente')}</td>
+        <td class="lb-pts">${Number(r.total_points ?? r.unspent_points ?? r.points ?? 0)}</td>
+      </tr>`).join('');
+    lbPanel.innerHTML = `
+      <table class="lb-table" aria-label="classifica">
+        <thead><tr><th>#</th><th>Utente</th><th style="text-align:right">Punti</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }catch(e){
+    lbPanel.innerHTML = '<div class="muted">Errore nel caricamento.</div>';
+  }
+}
+function activateLB(tabBtn){
+  [tabTop, tabUnspent].forEach(b=>b.classList.remove('is-active'));
+  tabBtn.classList.add('is-active');
+  const title = tabBtn.getAttribute('data-title') || '';
+  const url   = tabBtn.getAttribute('data-url') || '/api/leaderboard/top';
+  lbTitle.textContent = title;
+  renderLB(url);
+  if (lbTimer) clearInterval(lbTimer);
+  lbTimer = setInterval(()=>renderLB(url), 60000);
+}
+tabTop.addEventListener('click', ()=> activateLB(tabTop));
+tabUnspent.addEventListener('click', ()=> activateLB(tabUnspent));
 
-    function makeCard(item){
-      const fig = document.createElement('figure');
-      fig.className = 'card-item';
-      fig.title = item.name;
-      const img = document.createElement('img');
-      img.src = item.image_url || '';
-      img.alt = item.name || '';
-      fig.appendChild(img);
-      return fig;
-    }
+/* ======= Altri ======= */
+document.getElementById('btnEarn')?.addEventListener('click', ()=>{
+  window.open('https://www.twitch.tv/subs/malgax?gift=true', '_blank');
+});
 
-    function kindKey(k){
-      // normalizza i tipi
-      const kk = String(k||'').toLowerCase();
-      if (kk.includes('crea')) return 'creature';
-      if (kk.includes('spell') || kk.includes('incan')) return 'incantesimo';
-      if (kk.includes('inst') || kk.includes('snap')) return 'istantanea';
-      return kk; // fallback
-    }
-
-    async function loadCards(){
-      // placeholder
-      [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
-        if(!el) return;
-        el.innerHTML = '';
-        for(let i=0;i<8;i++){
-          const ph = document.createElement('div');
-          ph.className = 'card-item';
-          ph.style.background = '#0c0c12 linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0))';
-          el.appendChild(ph);
-        }
-      });
-
-      try{
-        const json = await api('/inventory');
-        const items = Array.isArray(json.items) ? json.items : [];
-        // separa per tipo
-        const creatures = items.filter(i=>kindKey(i.kind)==='creature');
-        const spells    = items.filter(i=>kindKey(i.kind)==='incantesimo');
-        const instants  = items.filter(i=>kindKey(i.kind)==='istantanea');
-
-        // pulisci placeholder
-        [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{ if(el) el.innerHTML=''; });
-
-        const c2 = creatures.filter(i=>Number(i.cost_points)===2);
-        const c3 = creatures.filter(i=>Number(i.cost_points)===3);
-        const c5 = creatures.filter(i=>Number(i.cost_points)===5);
-
-        c2.forEach(i=>crea2El.appendChild(makeCard(i)));
-        c3.forEach(i=>crea3El.appendChild(makeCard(i)));
-        c5.forEach(i=>crea5El.appendChild(makeCard(i)));
-
-        if(!c2.length) crea2El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 2</div>';
-        if(!c3.length) crea3El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 3</div>';
-        if(!c5.length) crea5El.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna carta costo 5</div>';
-
-        if(spells.length) spells.forEach(i=>spellsEl.appendChild(makeCard(i)));
-        else spellsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessun incantesimo</div>';
-
-        if(instants.length) instants.forEach(i=>instantsEl.appendChild(makeCard(i)));
-        else instantsEl.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Nessuna istantanea</div>';
-
-      }catch(e){
-        [crea2El,crea3El,crea5El,spellsEl,instantsEl].forEach(el=>{
-          if(el) el.innerHTML = '<div class="muted" style="grid-column:1/-1;padding:10px;">Errore caricamento carte</div>';
-        });
-      }
-    }
-
-    /* ========== CLASSIFICHE ========== */
-    const lbPanel = document.getElementById('lbPanel');
-    const lbTitle = document.getElementById('lbTitle');
-    const tabTop = document.getElementById('tabTop');
-    const tabUnspent = document.getElementById('tabUnspent');
-    let lbTimer = 0;
-
-    async function renderLB(url){
-      lbPanel.innerHTML = '<div class="lb-empty">Caricamento…</div>';
-      try{
-        const json = await api(url);
-        const arr = Array.isArray(json.items) ? json.items : json; // supporta {items:[...]} o [...]
-        if(!arr.length){ lbPanel.innerHTML = '<div class="lb-empty">Nessun dato.</div>'; return; }
-        const rows = arr.map((r,i)=>`
-          <tr>
-            <td class="lb-rank">${String(i+1).padStart(2,'0')}</td>
-            <td class="lb-user">${(r.username||'Utente')}</td>
-            <td class="lb-pts">${Number(r.total_points ?? r.unspent_points ?? r.points ?? 0)}</td>
-          </tr>`).join('');
-        lbPanel.innerHTML = `
-          <table class="lb-table" aria-label="classifica">
-            <thead><tr><th>#</th><th>Utente</th><th style="text-align:right">Punti</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>`;
-      }catch(e){
-        lbPanel.innerHTML = '<div class="lb-err">Errore nel caricamento.</div>';
-      }
-    }
-    function activateLB(tabBtn){
-      [tabTop, tabUnspent].forEach(b=>b.classList.remove('is-active'));
-      tabBtn.classList.add('is-active');
-      const title = tabBtn.getAttribute('data-title') || '';
-      const url   = tabBtn.getAttribute('data-url') || '/api/leaderboard/top';
-      lbTitle.textContent = title;
-      renderLB(url);
-      if (lbTimer) clearInterval(lbTimer);
-      lbTimer = setInterval(()=>renderLB(url), 60000);
-    }
-    tabTop.addEventListener('click', ()=> activateLB(tabTop));
-    tabUnspent.addEventListener('click', ()=> activateLB(tabUnspent));
-
-    /* ========== Altri ========== */
-    document.getElementById('btnEarn').addEventListener('click', ()=>{
-      window.open('https://www.twitch.tv/subs/malgax?gift=true', '_blank');
-    });
-
-    /* ========== START ========== */
-    initAuth();
-    loadCards();
-    activateLB(tabTop);
-  </script>
+/* ======= Start ======= */
+checkMe();
+loadCards();
+activateLB(tabTop);
+</script>
 </body>
 </html>
