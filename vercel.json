@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/me",                 "destination": "https://api.malgax.com/me" },
+    { "source": "/inventory",          "destination": "https://api.malgax.com/inventory" },
+    { "source": "/inventory/use",      "destination": "https://api.malgax.com/inventory/use" },
+    { "source": "/shop/items",         "destination": "https://api.malgax.com/shop/items" },
+    { "source": "/shop/purchase",      "destination": "https://api.malgax.com/shop/purchase" },
+    { "source": "/api/leaderboard/:p*", "destination": "https://api.malgax.com/api/leaderboard/:p*" }
+  ]
+}
