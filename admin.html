@@ -237,18 +237,9 @@ async function load(){
     const res=await fetch(url + (qs ? ('?' + qs) : ''), {credentials:'include',cache:'no-store'});
     if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
     const data=await res.json();
+    dataCache = Array.isArray(data) ? data : (data.items||[]);
 
-    // parsing flessibile
-    let items = [];
-    if (Array.isArray(data)) items = data;
-    else if (Array.isArray(data.items)) items = data.items;
-    else if (Array.isArray(data.data)) items = data.data;
-    else if (Array.isArray(data.rows)) items = data.rows;
-    else if (Array.isArray(data.results)) items = data.results;
-    else if (data && (data.item || data.result)) items = [data.item || data.result];
-    dataCache = items;
-
-    dump.textContent = JSON.stringify({shape: Object.keys(data||{}), sample: items.slice(0,3)}, null, 2);
+    dump.textContent = JSON.stringify(dataCache.slice(0,3), null, 2);
 
     renderTable(dataCache);
     count.textContent = `(${dataCache.length} record)`;
@@ -265,7 +256,7 @@ async function load(){
 function renderTable(items){
   rows.innerHTML='';
   if(!items?.length){
-    rows.innerHTML='<tr><td colspan="9" class="muted">Nessun dato. Suggerimenti: prova a cambiare TAB o rimuovere filtri.</td></tr>';
+    rows.innerHTML='<tr><td colspan="9" class="muted">Nessun dato</td></tr>';
     return;
   }
   const fr=document.createDocumentFragment();
@@ -296,4 +287,52 @@ function renderTable(items){
   rows.appendChild(fr);
 
   rows.querySelectorAll('button.btn-done').forEach(b=> b.disabled = b.disabled || !isAdmin);
-  rows.querySelectorAll('
+  rows.querySelectorAll('input.rowchk').forEach(c=> c.disabled = c.disabled || !isAdmin);
+  chkAll.checked = false;
+}
+
+/* ===== TOGGLE DONE ===== */
+async function markDoneOne(id){
+  try{
+    const res=await fetch(currentToggleUrl(),{
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ id, done:true })
+    });
+    if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
+    const row=dataCache.find(x=>String(pick(x,['id','event_id','_id','eventId']))===String(id));
+    if(row){ if('done'in row) row.done=true; else row.completed=true; }
+    renderTable(dataCache);
+    toast('Segnato come fatto','ok');
+  }catch(e){
+    toast('Errore segna fatto: '+e.message,'err');
+  }
+}
+async function markDoneSelected(){
+  const ids=[...rows.querySelectorAll('input.rowchk:checked')].map(c=>c.dataset.id);
+  if(!ids.length){ toast('Seleziona almeno una riga','warn'); return; }
+  for(const id of ids){ await markDoneOne(id); }
+}
+
+/* ===== AUTO / EXPORT ===== */
+function toggleAuto(){
+  if(!isAdmin){ toast('Solo malgax può usare auto refresh','err'); return; }
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; btnAuto.textContent='Auto refresh: OFF'; toast('Auto refresh OFF'); }
+  else{ autoTimer=setInterval(()=>load().catch(()=>{}),15000); btnAuto.textContent='Auto refresh: ON (15s)'; toast('Auto refresh ON'); }
+}
+function exportCSV(){
+  if(!isAdmin){ toast('Solo malgax può esportare','err'); return; }
+  if(!dataCache?.length){ toast('Niente da esportare','warn'); return; }
+
+  const cols=['when','user','card','kind','done','item_id','event_id'];
+  const lines=[cols.join(',')];
+
+  for(const r of dataCache){
+    const row=[
+      fmt(pick(r,['created_at','createdAt','timestamp','time','at','used_at','date'])),
+      pick(r,['user_login','username','user','viewer','twitch_login','login','userName','player']),
+      pick(r,['item_name','card_name','name','item','title']),
+      pick(r,['kind','type','card_type'], currentKind),
+      (pick(r,['done','completed','is_done','handled']) ? 'true' : 'false'),
+      pick
