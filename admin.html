@@ -135,8 +135,8 @@ const API_BASE    = 'https://api.malgax.com';
 const ME_ENDPOINT = '/me';
 const ADMIN_LOGIN = 'malgax';
 
-const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';
-const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete';
+const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';          // GET lista
+const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete'; // POST {id, done}
 
 /* ===== STATO ===== */
 let isAdmin=false, autoTimer=null, dataCache=[], currentKind='creature';
@@ -158,7 +158,9 @@ const fmt=iso=>{ if(!iso)return ''; const d=new Date(iso); return isNaN(d)?Strin
 function setEnabled(on){
   [fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnExport,btnClear,btnAuto,btnMarkSel,chkAll].forEach(el=>el.disabled=!on);
 }
+/* pick(obj, ['a','b','c'], fallback) — prende il primo campo disponibile */
 function pick(o, keys, fb=''){ for(const k of keys){ if(o && o[k]!=null) return o[k]; } return fb; }
+/* lowercase safe */
 const lower = v => (v==null?'':String(v)).toLowerCase();
 
 /* ===== AUTH ===== */
@@ -194,12 +196,13 @@ tabs.addEventListener('click', (e)=>{
   const b=e.target.closest('.tab'); if(!b) return;
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   b.classList.add('active');
-  currentKind = b.dataset.kind;
+  currentKind = b.dataset.kind; // creature | incantesimo | istantanea
   if(isAdmin) load();
 });
 
 /* ===== LOAD ===== */
 function buildParams(){
+  // NUOVA VERSIONE: non inserisce campi vuoti/undefined
   const p = {
     limit: Number(fLimit.value||100)||100,
     kind: currentKind,
@@ -225,6 +228,7 @@ async function load(){
   if(!isAdmin){ toast('Solo malgax può cercare','err'); return; }
   const url = currentListUrl();
   const params = buildParams();
+  // Costruzione query string SOLO con valori presenti
   const usp = new URLSearchParams();
   for (const [k,v] of Object.entries(params)) {
     if (v !== undefined && v !== null && String(v).trim() !== '') {
@@ -239,6 +243,7 @@ async function load(){
     const data=await res.json();
     dataCache = Array.isArray(data) ? data : (data.items||[]);
 
+    // Debug: mostra i primi 3 record grezzi
     dump.textContent = JSON.stringify(dataCache.slice(0,3), null, 2);
 
     renderTable(dataCache);
@@ -262,6 +267,7 @@ function renderTable(items){
   const fr=document.createDocumentFragment();
 
   for(const r of items){
+    // ——— mapping robusto per colonne chiave ———
     const when = pick(r, ['created_at','createdAt','timestamp','time','at','used_at','date']);
     const user = pick(r, ['user_login','username','user','viewer','twitch_login','login','userName','player']);
     const card = pick(r, ['item_name','card_name','name','item','title']);
@@ -301,6 +307,7 @@ async function markDoneOne(id){
       body:JSON.stringify({ id, done:true })
     });
     if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
+    // aggiorna localmente
     const row=dataCache.find(x=>String(pick(x,['id','event_id','_id','eventId']))===String(id));
     if(row){ if('done'in row) row.done=true; else row.completed=true; }
     renderTable(dataCache);
@@ -335,4 +342,39 @@ function exportCSV(){
       pick(r,['item_name','card_name','name','item','title']),
       pick(r,['kind','type','card_type'], currentKind),
       (pick(r,['done','completed','is_done','handled']) ? 'true' : 'false'),
-      pick
+      pick(r,['item_id','card_id','itemId','cardId','reward_id','rewardId']),
+      pick(r,['id','event_id','_id','eventId'])
+    ];
+    lines.push(row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','));
+  }
+
+  const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`used_cards_${currentKind}_${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ===== WIRE ===== */
+btnLoad.onclick = ()=>load();
+btnExport.onclick=()=>exportCSV();
+btnClear.onclick = ()=>{ fUser.value=fItem.value=fFrom.value=fTo.value=''; fStatus.value='all'; };
+btnAuto.onclick  = ()=>toggleAuto();
+btnMarkSel.onclick = ()=>markDoneSelected();
+$('#chk-all').onchange = ()=>{
+  rows.querySelectorAll('input.rowchk').forEach(c=>{
+    if(!c.disabled) c.checked = chkAll.checked;
+  });
+};
+rows.addEventListener('click', e=>{
+  const b=e.target.closest('.btn-done'); if(b){ markDoneOne(b.dataset.id); }
+});
+[fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint].forEach(el=>{
+  el.addEventListener('keydown', e=>{ if(e.key==='Enter' && isAdmin) load(); });
+});
+
+/* Avvio */
+checkMe();
+</script>
+</body>
+</html>
