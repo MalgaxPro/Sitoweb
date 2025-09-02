@@ -202,15 +202,19 @@ tabs.addEventListener('click', (e)=>{
 
 /* ===== LOAD ===== */
 function buildParams(){
-  return {
+  // NUOVA VERSIONE: non inserisce campi vuoti/undefined
+  const p = {
     limit: Number(fLimit.value||100)||100,
     kind: currentKind,
-    status: fStatus.value||'all',
-    user: (fUser.value||'').trim()||undefined,
-    item: (fItem.value||'').trim()||undefined,
-    from: fFrom.value ? new Date(fFrom.value).toISOString() : undefined,
-    to:   fTo.value   ? new Date(fTo.value).toISOString()   : undefined
+    status: fStatus.value || 'all'
   };
+  const user = (fUser.value || '').trim();
+  if (user) p.user = user;
+  const item = (fItem.value || '').trim();
+  if (item) p.item = item;
+  if (fFrom.value) p.from = new Date(fFrom.value).toISOString();
+  if (fTo.value)   p.to   = new Date(fTo.value).toISOString();
+  return p;
 }
 function currentListUrl(){
   const base = (fEndpoint.value||LIST_ENDPOINT_DEFAULT).trim();
@@ -223,11 +227,19 @@ function currentToggleUrl(){
 async function load(){
   if(!isAdmin){ toast('Solo malgax può cercare','err'); return; }
   const url = currentListUrl();
-  const qs  = new URLSearchParams(buildParams()).toString();
+  const params = buildParams();
+  // Costruzione query string SOLO con valori presenti
+  const usp = new URLSearchParams();
+  for (const [k,v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && String(v).trim() !== '') {
+      usp.append(k, String(v));
+    }
+  }
+  const qs = usp.toString();
   try{
     toast('Caricamento…');
-    const res=await fetch(url+'?'+qs,{credentials:'include',cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    const res=await fetch(url + (qs ? ('?' + qs) : ''), {credentials:'include',cache:'no-store'});
+    if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
     const data=await res.json();
     dataCache = Array.isArray(data) ? data : (data.items||[]);
 
@@ -266,15 +278,15 @@ function renderTable(items){
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
-      <td><input type="checkbox" class="rowchk" data-id="${esc(eid)}" ${done?'disabled':''}></td>
-      <td>${esc(fmt(when))}</td>
-      <td>${esc(user)}</td>
-      <td>${esc(card)}</td>
-      <td><span class="pill">${esc(kind)}</span></td>
-      <td>${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
-      <td>${esc(itemId)}</td>
-      <td>${esc(eid)}</td>
-      <td><button class="btn-done" data-id="${esc(eid)}" ${done?'disabled':''}>Segna fatto</button></td>
+      <td><input type="checkbox" class="rowchk" data-id="\${esc(eid)}" \${done?'disabled':''}></td>
+      <td>\${esc(fmt(when))}</td>
+      <td>\${esc(user)}</td>
+      <td>\${esc(card)}</td>
+      <td><span class="pill">\${esc(kind)}</span></td>
+      <td>\${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
+      <td>\${esc(itemId)}</td>
+      <td>\${esc(eid)}</td>
+      <td><button class="btn-done" data-id="\${esc(eid)}" \${done?'disabled':''}>Segna fatto</button></td>
     `;
     fr.appendChild(tr);
   }
@@ -294,7 +306,7 @@ async function markDoneOne(id){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ id, done:true })
     });
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
     // aggiorna localmente
     const row=dataCache.find(x=>String(pick(x,['id','event_id','_id','eventId']))===String(id));
     if(row){ if('done'in row) row.done=true; else row.completed=true; }
@@ -333,13 +345,13 @@ function exportCSV(){
       pick(r,['item_id','card_id','itemId','cardId','reward_id','rewardId']),
       pick(r,['id','event_id','_id','eventId'])
     ];
-    lines.push(row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','));
+    lines.push(row.map(v=>`"\${String(v??'').replaceAll('"','""')}"`).join(','));
   }
 
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`used_cards_${currentKind}_${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
+  a.download=`used_cards_\${currentKind}_\${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
   a.click(); URL.revokeObjectURL(a.href);
 }
 
