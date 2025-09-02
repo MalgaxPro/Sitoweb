@@ -278,15 +278,15 @@ function renderTable(items){
 
     const tr=document.createElement('tr');
     tr.innerHTML = `
-      <td><input type="checkbox" class="rowchk" data-id="\${esc(eid)}" \${done?'disabled':''}></td>
-      <td>\${esc(fmt(when))}</td>
-      <td>\${esc(user)}</td>
-      <td>\${esc(card)}</td>
-      <td><span class="pill">\${esc(kind)}</span></td>
-      <td>\${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
-      <td>\${esc(itemId)}</td>
-      <td>\${esc(eid)}</td>
-      <td><button class="btn-done" data-id="\${esc(eid)}" \${done?'disabled':''}>Segna fatto</button></td>
+      <td><input type="checkbox" class="rowchk" data-id="${esc(eid)}" ${done?'disabled':''}></td>
+      <td>${esc(fmt(when))}</td>
+      <td>${esc(user)}</td>
+      <td>${esc(card)}</td>
+      <td><span class="pill">${esc(kind)}</span></td>
+      <td>${done ? '<span class="ok">Fatto</span>' : '<span class="warn">Da fare</span>'}</td>
+      <td>${esc(itemId)}</td>
+      <td>${esc(eid)}</td>
+      <td><button class="btn-done" data-id="${esc(eid)}" ${done?'disabled':''}>Segna fatto</button></td>
     `;
     fr.appendChild(tr);
   }
@@ -345,13 +345,13 @@ function exportCSV(){
       pick(r,['item_id','card_id','itemId','cardId','reward_id','rewardId']),
       pick(r,['id','event_id','_id','eventId'])
     ];
-    lines.push(row.map(v=>`"\${String(v??'').replaceAll('"','""')}"`).join(','));
+    lines.push(row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','));
   }
 
   const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`used_cards_\${currentKind}_\${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
+  a.download=`used_cards_${currentKind}_${new Date().toISOString().replace(/[:.]/g,'-')}.csv`;
   a.click(); URL.revokeObjectURL(a.href);
 }
 
