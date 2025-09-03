@@ -135,11 +135,11 @@ const API_BASE    = 'https://api.malgax.com';
 const ME_ENDPOINT = '/me';
 const ADMIN_LOGIN = 'malgax';
 
-const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';          // GET lista
-const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete'; // POST {id, done}
+const LIST_ENDPOINT_DEFAULT  = '/admin/used-cards';
+const TOGGLE_DONE_ENDPOINT   = '/admin/used-cards/complete';
 
 /* ===== STATO ===== */
-let isAdmin=false, autoTimer=null, dataCache=[], currentKind='creature';
+let isAdmin=false, autoTimer=null, dataCache=[], currentKind='creature', lastCount=0;
 
 /* ===== DOM ===== */
 const $=s=>document.querySelector(s);
@@ -158,9 +158,7 @@ const fmt=iso=>{ if(!iso)return ''; const d=new Date(iso); return isNaN(d)?Strin
 function setEnabled(on){
   [fUser,fItem,fStatus,fFrom,fTo,fLimit,fEndpoint,btnLoad,btnExport,btnClear,btnAuto,btnMarkSel,chkAll].forEach(el=>el.disabled=!on);
 }
-/* pick(obj, ['a','b','c'], fallback) — prende il primo campo disponibile */
 function pick(o, keys, fb=''){ for(const k of keys){ if(o && o[k]!=null) return o[k]; } return fb; }
-/* lowercase safe */
 const lower = v => (v==null?'':String(v)).toLowerCase();
 
 /* ===== AUTH ===== */
@@ -196,13 +194,12 @@ tabs.addEventListener('click', (e)=>{
   const b=e.target.closest('.tab'); if(!b) return;
   tabs.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   b.classList.add('active');
-  currentKind = b.dataset.kind; // creature | incantesimo | istantanea
+  currentKind = b.dataset.kind;
   if(isAdmin) load();
 });
 
 /* ===== LOAD ===== */
 function buildParams(){
-  // NUOVA VERSIONE: non inserisce campi vuoti/undefined
   const p = {
     limit: Number(fLimit.value||100)||100,
     kind: currentKind,
@@ -228,7 +225,6 @@ async function load(){
   if(!isAdmin){ toast('Solo malgax può cercare','err'); return; }
   const url = currentListUrl();
   const params = buildParams();
-  // Costruzione query string SOLO con valori presenti
   const usp = new URLSearchParams();
   for (const [k,v] of Object.entries(params)) {
     if (v !== undefined && v !== null && String(v).trim() !== '') {
@@ -241,13 +237,24 @@ async function load(){
     const res=await fetch(url + (qs ? ('?' + qs) : ''), {credentials:'include',cache:'no-store'});
     if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
     const data=await res.json();
-    dataCache = Array.isArray(data) ? data : (data.items||[]);
 
-    // Debug: mostra i primi 3 record grezzi
-    dump.textContent = JSON.stringify(dataCache.slice(0,3), null, 2);
+    // parsing flessibile: array diretto o {items, count}
+    let items = [];
+    if (Array.isArray(data)) items = data;
+    else if (Array.isArray(data.items)) items = data.items;
+    else if (Array.isArray(data.data)) items = data.data;
+    else if (Array.isArray(data.rows)) items = data.rows;
+    else if (Array.isArray(data.results)) items = data.results;
+    else if (data && (data.item || data.result)) items = [data.item || data.result];
+
+    dataCache = items;
+    lastCount = (typeof data?.count === 'number') ? data.count : items.length;
+
+    // Debug e contatore
+    dump.textContent = JSON.stringify({shape: Object.keys(data||{}), count: lastCount, sample: items.slice(0,3)}, null, 2);
+    count.textContent = `(${lastCount} totali)`;
 
     renderTable(dataCache);
-    count.textContent = `(${dataCache.length} record)`;
     toast('OK','ok');
   }catch(e){
     dataCache=[]; renderTable(dataCache);
@@ -261,13 +268,12 @@ async function load(){
 function renderTable(items){
   rows.innerHTML='';
   if(!items?.length){
-    rows.innerHTML='<tr><td colspan="9" class="muted">Nessun dato</td></tr>';
+    rows.innerHTML='<tr><td colspan="9" class="muted">Nessun dato disponibile per i filtri correnti.</td></tr>';
     return;
   }
   const fr=document.createDocumentFragment();
 
   for(const r of items){
-    // ——— mapping robusto per colonne chiave ———
     const when = pick(r, ['created_at','createdAt','timestamp','time','at','used_at','date']);
     const user = pick(r, ['user_login','username','user','viewer','twitch_login','login','userName','player']);
     const card = pick(r, ['item_name','card_name','name','item','title']);
@@ -307,7 +313,6 @@ async function markDoneOne(id){
       body:JSON.stringify({ id, done:true })
     });
     if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+' → '+t.slice(0,400)); }
-    // aggiorna localmente
     const row=dataCache.find(x=>String(pick(x,['id','event_id','_id','eventId']))===String(id));
     if(row){ if('done'in row) row.done=true; else row.completed=true; }
     renderTable(dataCache);
